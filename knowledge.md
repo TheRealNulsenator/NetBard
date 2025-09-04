@@ -9,7 +9,8 @@
 ## What I Know About This Project
 - Entry point: main.cpp
 - Purpose: Network Cartographer - network mapping/visualization tool
-- Build system: Working (user confirmed)
+- Build system: VSCode tasks.json, Ctrl+Shift+B to build
+- Build command: g++ compiling all .cpp files to cartographer.exe
 - Dependencies: Standard C++ libs only (thread, mutex, queue, atomic)
 - User: Brad Nulsen at Grantek
 - Input: Command-based system with threaded input handler

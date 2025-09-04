@@ -7,25 +7,27 @@
 const int MAIN_LOOP_DELAY_MS = 10;
 
 int main() {
-    // Display banner
     std::cout << "Network Cartographer" << std::endl;
     std::cout << "Grantek - Brad Nulsen (2025)" << std::endl;
     std::cout << "\nType 'help' for commands, 'quit' to exit" << std::endl;
     std::cout << "> ";
     std::cout.flush();
     
-    // Initialize components
+    // Initialize major components
     InputHandler inputHandler;
     CommandDispatcher commandDispatcher;
     
     inputHandler.start();
     
-    // Main loop
+
     bool running = true;
-    while (running) {
+
+    while (running) {    // Main loop
+
         if (inputHandler.hasCommand()) {
             std::string command = inputHandler.getCommand();
             running = commandDispatcher.processCommand(command);
+
             if (running) {
                 std::cout << "> ";
                 std::cout.flush();
