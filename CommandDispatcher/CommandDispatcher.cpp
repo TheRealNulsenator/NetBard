@@ -5,8 +5,7 @@ CommandDispatcher::CommandDispatcher() {
     initializeCommands();
 }
 
-void CommandDispatcher::initializeCommands() {
-    // Register built-in commands
+void CommandDispatcher::initializeCommands() {     // Register built-in commands
     m_commands["help"] = [this]() { return handleHelp(); };
     m_commands["quit"] = [this]() { return handleQuit(); };
     m_commands["exit"] = [this]() { return handleQuit(); };
@@ -14,6 +13,7 @@ void CommandDispatcher::initializeCommands() {
 
 bool CommandDispatcher::processCommand(const std::string& command) {
     auto it = m_commands.find(command);
+    
     if (it != m_commands.end()) {
         return it->second();
     }

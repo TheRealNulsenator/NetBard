@@ -7,9 +7,11 @@
             "command": "g++",
             "args": [
                 "-g",
+                "-I${fileDirname}\\InputHandler",
+                "-I${fileDirname}\\CommandDispatcher",
                 "main.cpp",
-                "InputHandler.cpp",
-                "CommandDispatcher.cpp",
+                "InputHandler\\InputHandler.cpp",
+                "CommandDispatcher\\CommandDispatcher.cpp",
                 "-o",
                 "${fileDirname}\\cartographer.exe"
             ],

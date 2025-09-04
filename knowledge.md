@@ -20,8 +20,12 @@
 ```
 cartographer/
 ├── main.cpp (orchestrates program, no class/function definitions)
-├── CommandDispatcher.h/cpp
-├── InputHandler.h/cpp
+├── CommandDispatcher/
+│   ├── CommandDispatcher.h
+│   └── CommandDispatcher.cpp
+├── InputHandler/
+│   ├── InputHandler.h
+│   └── InputHandler.cpp
 ├── knowledge.md (this file - LLM context)
 ├── code-style.md (C++ style guide)
 └── project-log.md (human-readable project decisions/history)
@@ -51,6 +55,8 @@ cartographer/
 - Update knowledge.md silently with every prompt when relevant
 - Keep information density high - no fluff
 - Don't create noise about updates
+- Prefers organized folder structure (classes in own folders)
+- Makes own code formatting adjustments - observe and adapt
 
 ## User Background & Role
 - Industrial systems software engineer

@@ -3,7 +3,8 @@
     "allow": [
       "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer/**)",
       "Bash(del:*)",
-      "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer\\.vscode/**)"
+      "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer\\.vscode/**)",
+      "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer/**)"
     ],
     "deny": [],
     "ask": []
