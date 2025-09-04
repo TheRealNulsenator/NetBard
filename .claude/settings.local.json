@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
