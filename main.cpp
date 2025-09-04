@@ -14,11 +14,8 @@ int main() {
     std::cout.flush();
     
     // Initialize major components
-    InputHandler inputHandler;
+    InputHandler inputHandler;  // Starts collecting input immediately
     CommandDispatcher commandDispatcher;
-    
-    inputHandler.start();
-    
 
     bool running = true;
 
@@ -36,7 +33,6 @@ int main() {
         std::this_thread::sleep_for(std::chrono::milliseconds(MAIN_LOOP_DELAY_MS));
     }
     
-    inputHandler.stop();
     std::cout << "Exiting..." << std::endl;
     return 0;
 }

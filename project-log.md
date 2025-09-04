@@ -102,8 +102,15 @@
 
 ## Known Issues & Limitations
 
-1. **Platform dependency**: Currently Windows-only due to conio.h
-2. **Console limitations**: Text-only interface for now
+1. **Console limitations**: Text-only interface for now
+
+## Resolved Issues
+
+1. **Double-enter on quit** (2025-01-04): Fixed by simplifying InputHandler
+   - Root cause: std::getline blocks, preventing clean thread join
+   - Initial solution: Detach thread on stop()
+   - Final solution: Fire-and-forget pattern - thread runs for process lifetime
+   - Removed unnecessary start/stop lifecycle management
 
 ---
 

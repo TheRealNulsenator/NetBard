@@ -2,23 +2,23 @@
 #include <iostream>
 #include <chrono>
 
-InputHandler::InputHandler() : m_running(false) {
+InputHandler::InputHandler() {
+    m_inputThread = std::thread(&InputHandler::inputLoop, this);
+    m_inputThread.detach();  // Fire and forget
 }
 
 InputHandler::~InputHandler() {
-    stop();
+    // Don't even bother with stop() - just let process termination handle it
 }
 
-void InputHandler::start() {
-    m_running = true;
-    m_inputThread = std::thread(&InputHandler::inputLoop, this);
-}
-
-void InputHandler::stop() {
-    m_running = false;
-
-    if (m_inputThread.joinable()) {
-        m_inputThread.join();
+void InputHandler::inputLoop() {
+    std::string input;
+    while (true) {  //buffer inputs for lifetime of process
+        std::getline(std::cin, input);
+        if (!input.empty()) {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            m_commands.push(input);
+        }
     }
 }
 
@@ -36,21 +36,4 @@ std::string InputHandler::getCommand() {
     std::string cmd = m_commands.front();
     m_commands.pop();
     return cmd;
-}
-
-void InputHandler::inputLoop() {
-    std::string input;
-
-    while (m_running) {
-
-        if (std::cin.peek() != EOF) {
-            std::getline(std::cin, input);
-            
-            if (!input.empty()) {
-                std::lock_guard<std::mutex> lock(m_mutex);
-                m_commands.push(input);
-            }
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
 }

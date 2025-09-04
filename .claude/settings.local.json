@@ -4,7 +4,10 @@
       "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer/**)",
       "Bash(del:*)",
       "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer\\.vscode/**)",
-      "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer/**)"
+      "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer/**)",
+      "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer\\CommandDispatcher/**)",
+      "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer\\InputHandler/**)",
+      "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer\\InputHandler/**)"
     ],
     "deny": [],
     "ask": []

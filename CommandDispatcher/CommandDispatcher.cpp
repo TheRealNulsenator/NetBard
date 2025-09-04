@@ -12,10 +12,12 @@ void CommandDispatcher::initializeCommands() {     // Register built-in commands
 }
 
 bool CommandDispatcher::processCommand(const std::string& command) {
-    auto it = m_commands.find(command);
+    auto commandHandlerIterator = m_commands.find(command);
     
-    if (it != m_commands.end()) {
-        return it->second();
+    if (commandHandlerIterator != m_commands.end()) {
+        auto commandHandler = commandHandlerIterator->second;
+        bool shouldContinueRunning = commandHandler();
+        return shouldContinueRunning;
     }
     
     std::cout << "Unknown command: " << command << std::endl;

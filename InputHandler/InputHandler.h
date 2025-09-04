@@ -5,15 +5,12 @@
 #include <queue>
 #include <thread>
 #include <mutex>
-#include <atomic>
 
 class InputHandler {
 public:
     InputHandler();
     ~InputHandler();
-    
-    void start();
-    void stop();
+
     bool hasCommand();
     std::string getCommand();
     
@@ -22,7 +19,6 @@ private:
     
     std::queue<std::string> m_commands;
     std::mutex m_mutex;
-    std::atomic<bool> m_running;
     std::thread m_inputThread;
 };
 

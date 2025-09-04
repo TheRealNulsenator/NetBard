@@ -2,6 +2,8 @@
 
 ## General Principles
 - Clear, readable code over clever tricks
+- Self-documenting code through descriptive naming
+- Code should "flow naturally" when read
 - Consistency throughout the codebase
 - Standard, widely-accepted C++ conventions
 
@@ -9,7 +11,9 @@
 - **Constants**: UPPER_SNAKE_CASE (e.g., `QUIT_KEY`, `MAX_BUFFER_SIZE`)
 - **Functions**: camelCase (e.g., `processInput`, `connectToServer`)
 - **Classes**: PascalCase (e.g., `NetworkMapper`, `ConnectionHandler`)
-- **Variables**: camelCase (e.g., `userInput`, `connectionCount`)
+- **Variables**: Descriptive camelCase - prefer clarity over brevity
+  - Good: `commandHandlerIterator`, `shouldContinueRunning`
+  - Avoid: `it`, `tmp`, `val`
 - **Private members**: m_ prefix (e.g., `m_data`, `m_isConnected`)
 
 ## Formatting

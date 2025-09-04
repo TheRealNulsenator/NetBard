@@ -46,7 +46,9 @@ cartographer/
 *Will document as I learn them*
 
 ### Important Functions/Classes
-*Will document as discovered*
+- **InputHandler**: Fire-and-forget detached thread, runs for process lifetime
+  - No explicit lifecycle management needed
+  - Leverages OS process cleanup
 
 ## User Preferences & Patterns
 - User wants concise responses
@@ -57,6 +59,8 @@ cartographer/
 - Don't create noise about updates
 - Prefers organized folder structure (classes in own folders)
 - Makes own code formatting adjustments - observe and adapt
+- **Code style**: Self-documenting, verbose variable names over brevity
+- Prefers code that "flows naturally" - readable over dense
 
 ## User Background & Role
 - Industrial systems software engineer
