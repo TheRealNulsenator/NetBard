@@ -60,13 +60,14 @@ std::string SSHConnection::runSSHCommand(const std::string& sshCommand) {
 }
 
 bool SSHConnection::handleCommand(const std::vector<std::string>& arguments) {
-    if (arguments.size() < 3) {
+    // Now arguments[0] is username, arguments[1] is hostname
+    if (arguments.size() < 2) {
         std::cout << "Usage: ssh <username> <hostname>" << std::endl;
         return true;
     }
     
-    std::string username = arguments[1];
-    std::string hostname = arguments[2];
+    std::string username = arguments[0];
+    std::string hostname = arguments[1];
     
     std::cout << "Testing SSH connection to " << username << "@" << hostname << "..." << std::endl;
     

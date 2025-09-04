@@ -22,7 +22,8 @@ int main() {
     
     // Register SSH command using std::bind
     commandDispatcher.registerCommand("ssh", 
-        std::bind(&SSHConnection::handleCommand, &sshConnection, std::placeholders::_1));
+        std::bind(&SSHConnection::handleCommand, &sshConnection, std::placeholders::_1),
+        "Test SSH connection to a host");
 
     bool running = true;
 

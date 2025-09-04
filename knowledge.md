@@ -37,9 +37,9 @@ cartographer/
   - Registers commands using std::bind for cleaner code
 - **CommandDispatcher**: Dispatcher with built-in help/quit/exit
   - All commands use uniform interface: `bool(const std::vector<std::string>&)`
-  - Splits input into words, passes to handlers
+  - Splits input into words, removes command name, passes arguments to handlers
   - Self-registers help/quit/exit as fundamental commands
-  - Help command auto-lists all registered commands
+  - Help command auto-lists all registered commands with tips
 - **InputHandler**: Thread-safe command input system (queue-based)
 - **SSHConnection**: Simple SSH wrapper around ssh.exe
   - Stateless design (no connection management)

@@ -51,6 +51,9 @@ bool CommandDispatcher::processCommand(const std::string& command) {
     auto commandHandlerIterator = m_commands.find(commandName);
     
     if (commandHandlerIterator != m_commands.end()) {
+        // Remove command name from arguments before passing to handler
+        commandParts.erase(commandParts.begin());
+        
         auto commandHandler = commandHandlerIterator->second;
         bool shouldContinueRunning = commandHandler(commandParts);
         return shouldContinueRunning;
