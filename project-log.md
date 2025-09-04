@@ -48,8 +48,14 @@
 
 ### Phase 1: Foundation (Current)
 - Basic console application structure
-- Event loop with keyboard handling
+- Event loop with keyboard handling  
 - Clean exit mechanism
+- **2025-01-04**: Refactored to clean architecture
+  - main.cpp reduced to 6 lines
+  - Application class orchestrates program
+  - CommandDispatcher for extensible command handling
+  - InputHandler for thread-safe input
+  - Each class has single responsibility
 
 ### Phase 2: Core Functionality (Planned)
 - Network discovery logic

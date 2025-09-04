@@ -18,11 +18,19 @@
 ### File Structure
 ```
 cartographer/
-├── main.cpp
+├── main.cpp (orchestrates program, no class/function definitions)
+├── CommandDispatcher.h/cpp
+├── InputHandler.h/cpp
 ├── knowledge.md (this file - LLM context)
 ├── code-style.md (C++ style guide)
 └── project-log.md (human-readable project decisions/history)
 ```
+
+### Architecture
+- **main.cpp**: Orchestrates program flow, creates and coordinates components
+- **CommandDispatcher**: Routes commands to handlers, extensible via registerCommand()
+- **InputHandler**: Thread-safe command input system (queue-based)
+- User preference: No unnecessary abstraction layers (rejected Application class)
 
 ### Code Style
 - **Refer to code-style.md for all styling decisions**

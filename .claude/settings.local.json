@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer/**)"
+      "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer/**)",
+      "Bash(del:*)"
     ],
     "deny": [],
     "ask": []
