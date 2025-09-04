@@ -10,8 +10,9 @@
 - Entry point: main.cpp
 - Purpose: Network Cartographer - network mapping/visualization tool
 - Build system: Working (user confirmed)
-- Dependencies: Currently using conio.h (Windows console I/O)
+- Dependencies: Standard C++ libs only (thread, mutex, queue, atomic)
 - User: Brad Nulsen at Grantek
+- Input: Command-based system with threaded input handler
 
 ## Code Understanding
 ### File Structure

@@ -33,10 +33,14 @@
 ## Complexity Points
 
 ### Console Input Handling
-- **Challenge**: Need non-blocking keyboard input on Windows
-- **Solution**: Using `_kbhit()` and `_getch()` from conio.h
-- **Trade-off**: Platform-specific (Windows only), but simple and effective
-- **Future consideration**: May need abstraction layer for cross-platform support
+- **Challenge**: Need non-blocking command input system
+- **Evolution**:
+  1. conio.h (deprecated)
+  2. Windows API (GetAsyncKeyState) - for ESC key
+  3. Threaded input handler with command queue (current)
+- **Final solution**: Separate InputHandler class with thread-safe queue
+- **Rationale**: Decoupled, extensible, uses only standard C++ libs
+- **Benefits**: Platform-independent, easy to extend, clean separation
 
 ---
 
