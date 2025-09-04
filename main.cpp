@@ -32,11 +32,8 @@ int main() {
         if (inputHandler.hasCommand()) {
             std::string command = inputHandler.getCommand();
             running = commandDispatcher.processCommand(command);
-
-            if (running) {
-                std::cout << "> ";
-                std::cout.flush();
-            }
+            std::cout << "> ";
+            std::cout.flush();
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(MAIN_LOOP_DELAY_MS));
     }
