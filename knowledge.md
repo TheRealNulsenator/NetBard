@@ -32,9 +32,20 @@ cartographer/
 ```
 
 ### Architecture
-- **main.cpp**: Orchestrates program flow, creates and coordinates components
-- **CommandDispatcher**: Routes commands to handlers, extensible via registerCommand()
+- **main.cpp**: Creates all components, registers command handlers, runs main loop
+  - Owns SSHConnection, InputHandler, CommandDispatcher
+  - Registers commands using std::bind for cleaner code
+- **CommandDispatcher**: Dispatcher with built-in help/quit/exit
+  - All commands use uniform interface: `bool(const std::vector<std::string>&)`
+  - Splits input into words, passes to handlers
+  - Self-registers help/quit/exit as fundamental commands
+  - Help command auto-lists all registered commands
 - **InputHandler**: Thread-safe command input system (queue-based)
+- **SSHConnection**: Simple SSH wrapper around ssh.exe
+  - Stateless design (no connection management)
+  - Uses _popen/_pclose to run ssh commands
+  - Assumes SSH keys are configured
+  - Has handleCommand() method for CommandDispatcher integration
 - User preference: No unnecessary abstraction layers (rejected Application class)
 
 ### Code Style
@@ -51,6 +62,8 @@ cartographer/
   - Leverages OS process cleanup
 
 ## User Preferences & Patterns
+- **KISS principle** - Don't add code for future scenarios
+- No premature abstraction or "future enhancement" comments
 - User wants concise responses
 - User wants me to maintain context via this file
 - Working environment: Windows, OneDrive synced

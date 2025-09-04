@@ -1,22 +1,58 @@
 #include "CommandDispatcher.h"
 #include <iostream>
+#include <sstream>
 
 CommandDispatcher::CommandDispatcher() {
-    initializeCommands();
+    initializeBuiltInCommands();
 }
 
-void CommandDispatcher::initializeCommands() {     // Register built-in commands
-    m_commands["help"] = [this]() { return handleHelp(); };
-    m_commands["quit"] = [this]() { return handleQuit(); };
-    m_commands["exit"] = [this]() { return handleQuit(); };
+void CommandDispatcher::initializeBuiltInCommands() {
+    // Register built-in commands that are always available
+    registerCommand("help", [this](const std::vector<std::string>& args) {
+        return handleHelp(args);
+    });
+    
+    registerCommand("quit", [](const std::vector<std::string>& args) {
+        return false;  // Stop running
+    });
+    
+    registerCommand("exit", [](const std::vector<std::string>& args) {
+        return false;  // Stop running
+    });
+}
+
+bool CommandDispatcher::handleHelp(const std::vector<std::string>& arguments) {
+    std::cout << "\nAvailable commands:" << std::endl;
+    std::cout << "  help  - Show this message" << std::endl;
+    std::cout << "  quit  - Exit the program" << std::endl;
+    std::cout << "  exit  - Exit the program" << std::endl;
+    
+    // Show registered commands (excluding built-ins we just listed)
+    for (const auto& commandPair : m_commands) {
+        const std::string& commandName = commandPair.first;
+        const std::string& tip = m_tips[commandName];
+        if (commandName != "help" && commandName != "quit" && commandName != "exit") {
+            std::cout << "  " << commandName << " - " << tip << std::endl;
+        }
+    }
+    
+    return true;  // Continue running
 }
 
 bool CommandDispatcher::processCommand(const std::string& command) {
-    auto commandHandlerIterator = m_commands.find(command);
+    std::vector<std::string> commandParts = splitCommand(command);
+    
+    if (commandParts.empty()) {
+        return true;  // Empty command, continue running
+    }
+    
+    std::string commandName = commandParts[0];
+    
+    auto commandHandlerIterator = m_commands.find(commandName);
     
     if (commandHandlerIterator != m_commands.end()) {
         auto commandHandler = commandHandlerIterator->second;
-        bool shouldContinueRunning = commandHandler();
+        bool shouldContinueRunning = commandHandler(commandParts);
         return shouldContinueRunning;
     }
     
@@ -25,18 +61,19 @@ bool CommandDispatcher::processCommand(const std::string& command) {
     return true;  // Continue running
 }
 
-void CommandDispatcher::registerCommand(const std::string& name, std::function<bool()> handler) {
+void CommandDispatcher::registerCommand(const std::string& name, CommandHandler handler, const std::string& tip) {
     m_commands[name] = handler;
+    m_tips[name] = tip;
 }
 
-bool CommandDispatcher::handleHelp() {
-    std::cout << "\nAvailable commands:" << std::endl;
-    std::cout << "  help  - Show this message" << std::endl;
-    std::cout << "  quit  - Exit the program" << std::endl;
-    std::cout << "  exit  - Exit the program" << std::endl;
-    return true;  // Continue running
-}
-
-bool CommandDispatcher::handleQuit() {
-    return false;  // Stop running
+std::vector<std::string> CommandDispatcher::splitCommand(const std::string& command) {
+    std::vector<std::string> parts;
+    std::stringstream stringStream(command);
+    std::string part;
+    
+    while (stringStream >> part) {
+        parts.push_back(part);
+    }
+    
+    return parts;
 }

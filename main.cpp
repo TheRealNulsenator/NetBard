@@ -1,8 +1,10 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <functional>
 #include "InputHandler.h"
 #include "CommandDispatcher.h"
+#include "SSHConnection.h"
 
 const int MAIN_LOOP_DELAY_MS = 10;
 
@@ -16,6 +18,11 @@ int main() {
     // Initialize major components
     InputHandler inputHandler;  // Starts collecting input immediately
     CommandDispatcher commandDispatcher;
+    SSHConnection sshConnection;
+    
+    // Register SSH command using std::bind
+    commandDispatcher.registerCommand("ssh", 
+        std::bind(&SSHConnection::handleCommand, &sshConnection, std::placeholders::_1));
 
     bool running = true;
 

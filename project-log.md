@@ -9,6 +9,29 @@
 
 ## Design Decisions
 
+### 2025-01-04: Command Registration Architecture  
+- **Decision**: Commands registered in main, not CommandDispatcher
+- **Rationale**: Better separation of concerns
+- **Benefits**:
+  - CommandDispatcher is a pure dispatcher with no dependencies
+  - Main owns all components and wires them together
+  - Commands can capture local objects via lambda closures
+  - More testable and flexible
+
+### 2025-01-04: SSH Implementation Strategy
+- **Decision**: PIMPL + Abstract Factory pattern with pluggable backends
+- **Rationale**: Maximum flexibility, runtime backend selection
+- **Current backend**: WindowsOpenSSHImpl using ssh.exe
+- **Architecture benefits**:
+  - Abstract base defines interface contract
+  - Factory method selects appropriate implementation
+  - Easy to add new backends without changing public API
+  - Enables mock implementations for testing
+- **Trade-offs**: 
+  - Pros: Extensible, testable, no lock-in to specific implementation
+  - Cons: Slightly more complex than direct implementation
+- **Future backends**: LibSSH2, PowerShell remoting, Mock for tests
+
 ### 2025-01-04: Initial Architecture
 - **Decision**: Console-based application with keyboard input handling
 - **Rationale**: Start with simple CLI interface, can add GUI later if needed
@@ -18,6 +41,12 @@
 - **Decision**: Use ESC key as program exit trigger
 - **Rationale**: Standard convention, doesn't interfere with typical input
 - **Alternative considered**: Ctrl+C (rejected - too abrupt, no cleanup opportunity)
+
+### 2025-01-04: InputHandler Simplification
+- **Decision**: Fire-and-forget detached thread pattern
+- **Rationale**: Input collection is always needed until process dies
+- **Benefits**: No lifecycle management, no race conditions, leverages OS cleanup
+- **Philosophy**: KISS - removed unnecessary complexity when process termination handles cleanup perfectly
 
 ---
 

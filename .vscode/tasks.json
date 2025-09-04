@@ -9,9 +9,11 @@
                 "-g",
                 "-I${fileDirname}\\InputHandler",
                 "-I${fileDirname}\\CommandDispatcher",
+                "-I${fileDirname}\\SSHConnection",
                 "main.cpp",
                 "InputHandler\\InputHandler.cpp",
                 "CommandDispatcher\\CommandDispatcher.cpp",
+                "SSHConnection\\SSHConnection.cpp",
                 "-o",
                 "${fileDirname}\\cartographer.exe"
             ],
