@@ -9,6 +9,24 @@
 
 ## Design Decisions
 
+### 2025-09-05: Code Polish/Cleanup Process
+- **Decision**: Established systematic cleanup checklist
+- **Trigger**: User says "cleanup" or "polish"
+- **Rationale**: Maintain consistent code quality without repeating instructions
+- **Checklist includes**:
+  - Header guard verification and naming consistency
+  - Include optimization for faster compile times
+  - Naming convention enforcement
+  - Code organization and formatting
+  - Comment and documentation updates
+  - Const correctness review
+  - Error message consistency
+  - Magic number elimination
+- **Benefits**: 
+  - Faster compile times through include optimization
+  - More maintainable code through consistency
+  - Reduced technical debt through regular cleanup
+
 ### 2025-01-04: Command Registration Architecture  
 - **Decision**: Commands registered in main, not CommandDispatcher
 - **Rationale**: Better separation of concerns
@@ -43,6 +61,31 @@
 ---
 
 ## Technical Adjustments
+
+### 2025-09-05: SubnetScanner Implementation
+- **Decision**: Implemented network subnet scanning component
+- **Features**:
+  - CIDR notation parsing with flexible delimiter support (/ or \)
+  - Binary IP address conversion using bitwise operations
+  - Subnet mask generation from CIDR notation
+  - Address range calculation for host discovery
+- **Implementation Details**:
+  - Uses uint32_t for binary IP representation
+  - Validates input at each parsing stage
+  - Returns meaningful error messages for invalid input
+  - Calculates network and broadcast addresses
+  - Generates list of scannable host addresses
+- **Code patterns**:
+  - Extensive use of const return types for safety
+  - Early return validation pattern
+  - Descriptive variable names (e.g., `valid_octet_count`, `valid_mask_count`)
+  - Comments explaining edge cases and logic
+- **Cleanup performed**:
+  - Fixed header guard from `SUBNET_PINGER_H` to `SUBNET_SCANNER_H`
+  - Removed unused includes (`<thread>`, `<mutex>` from header)
+  - Removed duplicate include (`<string>` from cpp)
+  - Added required includes (`<cstdint>` for uint32_t)
+  - Result: Cleaner headers, faster compile times
 
 ### 2025-01-06: Directory Structure Reorganization
 - **Decision**: Moved to traditional include/src folder structure
@@ -96,8 +139,13 @@
   - Each class has single responsibility
   - Classes organized into their own folders for better structure
 
-### Phase 2: Core Functionality (Planned)
+### Phase 2: Core Functionality (In Progress)
 - Network discovery logic
+  - **2025-09-05**: SubnetScanner component added
+  - CIDR notation parsing and validation
+  - IP address to binary conversion
+  - Subnet mask generation
+  - Address range calculation
 - Data structures for network topology
 - Connection management
 
@@ -178,4 +226,4 @@
 
 ---
 
-*Last Updated: 2025-01-06*
+*Last Updated: 2025-09-05*

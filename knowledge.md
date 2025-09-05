@@ -38,11 +38,13 @@ cartographer/
 ├── include/
 │   ├── CommandDispatcher.h
 │   ├── InputHandler.h
-│   └── SSHConnection.h
+│   ├── SSHConnection.h
+│   └── SubnetScanner.h
 ├── src/
 │   ├── CommandDispatcher.cpp
 │   ├── InputHandler.cpp
-│   └── SSHConnection.cpp
+│   ├── SSHConnection.cpp
+│   └── SubnetScanner.cpp
 ├── knowledge.md (this file - LLM context)
 ├── code-style.md (C++ style guide)
 └── project-log.md (human-readable project decisions/history)
@@ -50,7 +52,7 @@ cartographer/
 
 ### Architecture
 - **main.cpp**: Creates all components, registers command handlers, runs main loop
-  - Owns SSHConnection, InputHandler, CommandDispatcher
+  - Owns SSHConnection, InputHandler, CommandDispatcher, SubnetScanner
   - Registers commands using std::bind for cleaner code
 - **CommandDispatcher**: Dispatcher with built-in help/quit/exit
   - All commands use uniform interface: `bool(const std::vector<std::string>&)`
@@ -65,6 +67,13 @@ cartographer/
   - Has handleCommand() method for CommandDispatcher integration
   - Requires: libssh2 library
   - **Important**: Proper channel cleanup required between commands (send_eof, wait_eof, wait_closed)
+- **SubnetScanner**: Network subnet scanning and host discovery
+  - Handles CIDR notation parsing (supports both / and \ delimiters)
+  - Converts IP addresses to binary representation
+  - Creates subnet masks from CIDR notation
+  - Generates address ranges for scanning
+  - Has handleCommand() method for CommandDispatcher integration
+  - Command: `scan <cidr>` (e.g., scan 192.168.1.0/24)
 - User preference: No unnecessary abstraction layers (rejected Application class)
 
 ### Code Style
@@ -138,11 +147,68 @@ cartographer/
   - Fixed "Failed to open channel" error by using shell mode
   - Refactored waitShellPrompt() using guard clauses
   - Added automated discovery commands for network devices
-- Current: SSH connection working reliably with multiple commands
+- Current: SubnetScanner implementation (2025-09-05)
+  - CIDR notation parsing with flexible delimiters
+  - Binary IP address conversion and manipulation
+  - Subnet mask generation from CIDR notation
+  - Address range calculation for host discovery
 
 ## Critical Notes
 - **Must maintain documentation**: User explicitly requires updating knowledge.md, code-style.md, and project-log.md throughout work
 - **SSH device limitation**: Some network devices only allow one channel per session - use shell mode for multiple commands
 
+## Cleanup/Polish Task Checklist
+**Trigger phrase**: "cleanup", "polish", or similar
+**Purpose**: Systematic code quality improvements without changing functionality
+
+### Always Check:
+1. **Header Guards**
+   - Ensure all headers use proper include guards matching their filename
+   - Format: `HEADER_NAME_H` (e.g., `SUBNET_SCANNER_H` for SubnetScanner.h)
+   - Never use pragma once (prefer traditional guards)
+
+2. **Include Optimization**
+   - Remove duplicate includes between .h and .cpp files
+   - Remove unused includes (especially `<thread>`, `<mutex>` if not used)
+   - Add required includes for types (e.g., `<cstdint>` for uint32_t)
+   - Header files should only include what they directly need
+   - Implementation files should not re-include what's in their header
+
+3. **Naming Consistency**
+   - Private member variables: check for m_ prefix or snake_case consistency
+   - Function names: camelCase (some use snake_case - standardize)
+   - Constants: UPPER_SNAKE_CASE
+   - Fix any typos (e.g., subnet_cider → subnet_cidr)
+
+4. **Code Organization**
+   - Ensure consistent spacing and indentation (4 spaces)
+   - Remove unnecessary blank lines
+   - Add blank lines between logical sections
+   - Ensure consistent brace style
+
+5. **Comments & Documentation**
+   - Remove or update outdated comments
+   - Ensure inline comments are meaningful
+   - Update documentation files if behavior changed
+
+6. **Const Correctness**
+   - Mark methods const where appropriate
+   - Use const parameters where values shouldn't change
+   - Check return types for unnecessary const on primitives
+
+7. **Error Messages**
+   - Ensure all error messages are clear and consistent
+   - Use consistent capitalization in output messages
+
+8. **Magic Numbers**
+   - Replace any remaining magic numbers with named constants
+   - Document any non-obvious constant values
+
+### Quick Checks:
+- Run build to ensure no warnings
+- Check for TODO/FIXME comments that can be addressed
+- Verify all files end with newline
+- Check for trailing whitespace
+
 ---
-*Last Updated: 2025-01-06 - This file preserves Claude's working context for the Cartographer project*
+*Last Updated: 2025-09-05 - This file preserves Claude's working context for the Cartographer project*

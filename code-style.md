@@ -10,11 +10,12 @@
 ## Naming Conventions
 - **Constants**: UPPER_SNAKE_CASE (e.g., `QUIT_KEY`, `MAX_BUFFER_SIZE`)
 - **Functions**: camelCase (e.g., `processInput`, `connectToServer`)
+  - Note: Some functions use snake_case (e.g., `find_hosts`, `address_to_bits`)
 - **Classes**: PascalCase (e.g., `NetworkMapper`, `ConnectionHandler`)
-- **Variables**: Descriptive camelCase - prefer clarity over brevity
-  - Good: `commandHandlerIterator`, `shouldContinueRunning`
+- **Variables**: Descriptive camelCase or snake_case - prefer clarity over brevity
+  - Good: `commandHandlerIterator`, `shouldContinueRunning`, `subnet_hosts`
   - Avoid: `it`, `tmp`, `val`
-- **Private members**: m_ prefix (e.g., `m_data`, `m_isConnected`)
+- **Private members**: Either m_ prefix or snake_case (e.g., `m_data`, `m_isConnected`, `subnet_cider`, `subnet_hosts`)
 
 ## Formatting
 - **Indentation**: 4 spaces (no tabs)
@@ -26,12 +27,14 @@
 - No magic numbers or characters - use named constants/arrays
 - One declaration per line
 - Initialize variables at declaration when possible
-- Use const where appropriate
+- Use const where appropriate (including function return types where values shouldn't change)
 - Prefer nullptr over NULL
 - **Guard clauses**: Use early returns/continue to flatten nested code
 - **Extract complex logic**: Move implementation details to separate functions
 - **Function focus**: Keep functions focused on their primary purpose
 - **Buffer reuse**: Pass buffers as parameters to avoid repeated allocations
+- **Validation**: Validate input parameters early and return meaningful error indicators
+- **Bit manipulation**: Use explicit types (uint32_t) and bitwise operations for network address handling
 
 ## Comments
 - Use // for single-line comments
@@ -41,9 +44,19 @@
 - Comments on same line as code for brief clarifications
 
 ## Headers
-- Include guards or #pragma once
-- System headers before project headers
-- Alphabetical order within each group
+- **Include guards**: Use traditional guards, not #pragma once
+  - Format: `HEADER_NAME_H` matching the filename
+  - Example: `SUBNET_SCANNER_H` for SubnetScanner.h
+- **Include optimization**:
+  - Headers: Only include what's directly needed
+  - Implementation: Don't re-include what's in the header
+  - Remove unused includes to reduce compile time
+  - Add explicit includes for types (e.g., `<cstdint>` for uint32_t)
+- **Include order**:
+  - Own header first (in .cpp files)
+  - System headers
+  - Project headers
+  - Alphabetical within each group
 
 ## Refactoring Patterns
 - **Reduce nesting**: Use guard clauses to handle edge cases first

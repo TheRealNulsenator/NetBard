@@ -1,9 +1,9 @@
 
 #include "SubnetScanner.h"
-#include <string>
 #include <iostream>
 #include <algorithm>
 #include <bitset>
+#include <cstdint>
 
 
 
@@ -12,7 +12,7 @@ bool SubnetScanner::handleCommand(const std::vector<std::string>& arguments) {
     if (arguments.size() == 1) {
         const std::string cidr = arguments[0];
         std::cout << "scanning subnet " << cidr << "..." << std::endl;
-        create_host_list(cidr);
+        find_hosts(cidr);
     }
     else{
         std::cout << "Usage: scan <cidr>" << std::endl;
@@ -22,7 +22,7 @@ bool SubnetScanner::handleCommand(const std::vector<std::string>& arguments) {
     return true;
 }
 
-const bool SubnetScanner::create_host_list(const std::string cidr)
+const bool SubnetScanner::find_hosts(const std::string cidr)
 {
 
     std::vector<std::string> cidr_parts; //stores individual parts of subnet
@@ -35,7 +35,7 @@ const bool SubnetScanner::create_host_list(const std::string cidr)
     if (!create_subnet_mask(cidr_parts.back(), mask)) { std::cout << "Invalid Subnet" << std::endl; return false;}
 
     std::cout << std::bitset<32>(ip) << " " << std::bitset<32>(mask) << std::endl;
-    std::vector<uint32_t> binary_addresses = subnet_address_range(ip, mask);
+    std::vector<uint32_t> binary_addresses = create_address_range(ip, mask);
     
     return true;
 }
@@ -102,7 +102,7 @@ const bool SubnetScanner::create_subnet_mask(const std::string subnet_mask, uint
 }
 
 
-const std::vector<uint32_t> SubnetScanner::subnet_address_range(const uint32_t ip, const uint32_t mask)
+const std::vector<uint32_t> SubnetScanner::create_address_range(const uint32_t ip, const uint32_t mask)
 {
 
     const uint32_t network_address = ip & mask;
