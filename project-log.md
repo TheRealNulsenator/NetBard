@@ -19,18 +19,14 @@
   - More testable and flexible
 
 ### 2025-01-04: SSH Implementation Strategy
-- **Decision**: PIMPL + Abstract Factory pattern with pluggable backends
-- **Rationale**: Maximum flexibility, runtime backend selection
-- **Current backend**: WindowsOpenSSHImpl using ssh.exe
-- **Architecture benefits**:
-  - Abstract base defines interface contract
-  - Factory method selects appropriate implementation
-  - Easy to add new backends without changing public API
-  - Enables mock implementations for testing
+- **Initial approach**: Windows ssh.exe via _popen
+- **Problem**: Windows SSH restrictions on legacy crypto algorithms
+- **Final decision**: Direct libssh2 implementation
+- **Rationale**: Full control over crypto, supports legacy devices
+- **Implementation**: Barebones - just connect/execute/disconnect
 - **Trade-offs**: 
-  - Pros: Extensible, testable, no lock-in to specific implementation
-  - Cons: Slightly more complex than direct implementation
-- **Future backends**: LibSSH2, PowerShell remoting, Mock for tests
+  - Pros: Works with legacy devices, no system config needed
+  - Cons: Requires libssh2 dependency
 
 ### 2025-01-04: Initial Architecture
 - **Decision**: Console-based application with keyboard input handling

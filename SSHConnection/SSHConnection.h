@@ -4,23 +4,27 @@
 #include <string>
 #include <vector>
 
+// Forward declarations
+typedef struct _LIBSSH2_SESSION LIBSSH2_SESSION;
+typedef struct _LIBSSH2_CHANNEL LIBSSH2_CHANNEL;
+
 class SSHConnection {
 public:
     SSHConnection();
     ~SSHConnection();
     
-    // Test connection to a host
-    bool testConnection(const std::string& hostname, const std::string& username, int port = 22);
-    
-    // Execute a command on the host
-    std::string executeCommand(const std::string& hostname, const std::string& username, 
-                              const std::string& command, int port = 22);
+    // Simple connect and execute
+    bool connect(const std::string& hostname, const std::string& username, const std::string& password, int port = 22);
+    std::string execute(const std::string& command);
+    void disconnect();
     
     // Command handler for CommandDispatcher
     bool handleCommand(const std::vector<std::string>& arguments);
     
 private:
-    std::string runSSHCommand(const std::string& sshCommand);
+    LIBSSH2_SESSION* m_session;
+    int m_socket;
+    bool m_connected;
 };
 
 #endif // SSH_CONNECTION_H

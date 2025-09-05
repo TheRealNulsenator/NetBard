@@ -41,11 +41,12 @@ cartographer/
   - Self-registers help/quit/exit as fundamental commands
   - Help command auto-lists all registered commands with tips
 - **InputHandler**: Thread-safe command input system (queue-based)
-- **SSHConnection**: Simple SSH wrapper around ssh.exe
-  - Stateless design (no connection management)
-  - Uses _popen/_pclose to run ssh commands
-  - Assumes SSH keys are configured
+- **SSHConnection**: Barebones libssh2 implementation
+  - Direct libssh2 API usage (no ssh.exe)
+  - Password authentication only
+  - Simple connect/execute/disconnect model
   - Has handleCommand() method for CommandDispatcher integration
+  - Requires: libssh2 library
 - User preference: No unnecessary abstraction layers (rejected Application class)
 
 ### Code Style
@@ -64,6 +65,10 @@ cartographer/
 ## User Preferences & Patterns
 - **KISS principle** - Don't add code for future scenarios
 - No premature abstraction or "future enhancement" comments
+
+## Technical Considerations
+- Windows ssh.exe has crypto restrictions that affect legacy device connections
+- May need libssh2 for better legacy SSH support without system modifications
 - User wants concise responses
 - User wants me to maintain context via this file
 - Working environment: Windows, OneDrive synced

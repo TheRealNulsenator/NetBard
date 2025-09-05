@@ -10,10 +10,13 @@
                 "-I${fileDirname}\\InputHandler",
                 "-I${fileDirname}\\CommandDispatcher",
                 "-I${fileDirname}\\SSHConnection",
+                "-IC:\\msys64\\mingw64\\include",
                 "main.cpp",
                 "InputHandler\\InputHandler.cpp",
                 "CommandDispatcher\\CommandDispatcher.cpp",
                 "SSHConnection\\SSHConnection.cpp",
+                "-lssh2",
+                "-lws2_32",
                 "-o",
                 "${fileDirname}\\cartographer.exe"
             ],
