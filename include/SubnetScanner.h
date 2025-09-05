@@ -3,17 +3,26 @@
 
 #include <string>
 #include <vector>
+#include <thread>
+#include <mutex>
 
 class SubnetScanner {
+
 public:
 
-void PingSubnet(const std::string CIDR);
+    SubnetScanner();
+    ~SubnetScanner();
+
+    void scanSubnet(const std::string CIDR);
 
 private:
 
-std::string subnet;
-std::vector<std::string> ping_responders;
+    std::string subnet_cider;
+    std::vector<std::string> subnet_hosts;
 
+    bool pingHost(const std::string address);
+    const std::vector<std::string> create_host_list(const std::string cidr);
+    bool unwrap_cidr(const std::string cidr, std::vector<std::string>& results);
 };
 
 #endif
