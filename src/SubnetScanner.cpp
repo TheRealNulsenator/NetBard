@@ -11,35 +11,14 @@ const bool SubnetScanner::create_host_list(const std::string cidr, std::vector<s
     std::vector<std::string> cidr_parts; //stores individual parts of subnet
     if (!unwrap_cidr(cidr, cidr_parts))  std::cout << "Invalid CIDR (###.###.###.###/#)"; return false; 
    
-    uint32_t ip;
+    uint32_t ip; //extracts octets into binary address
     if (!address_to_bits(cidr_parts, ip)) std::cout << "Invalid Address" << std::endl; return false;
         
+    uint32_t mask; //extracts subnet mask shorthand into binary mask
+    if (!create_subnet_mask(cidr_parts.back(), mask)) std::cout << "Invalid Subnet" << std::endl; return false;
     
     return true;
 }
-
-
-const bool SubnetScanner::address_to_bits(const std::vector<std::string> octets, uint32_t& ip)
-{    
-    ip = 0;  // Initialize the output parameter
-    try {
-
-        for (int i = 0; i < 4; i++) { //4 octets in a valid subnet. ignore anything else, like a dangling subnet mask
-            int octet = std::stoi(octets[i]);
-
-            if (octet < 0 || octet > 255) return false;  // Invalid octet range
-
-            const uint8_t offset = (24 - (i * 8));
-            ip |= (octet << offset);
-        }
-        return true;  // Success
-
-    } catch (const std::exception& e) { // Conversion failed
-        ip = 0; 
-        return false;  
-    }
-}
-
 
 const bool SubnetScanner::unwrap_cidr(const std::string cidr, std::vector<std::string>& results)
 {
@@ -68,3 +47,36 @@ const bool SubnetScanner::unwrap_cidr(const std::string cidr, std::vector<std::s
     return  valid_octet_count && valid_mask_count && valid_token_count;
 }
 
+const bool SubnetScanner::address_to_bits(const std::vector<std::string> octets, uint32_t& ip)
+{    
+    ip = 0;  // Initialize the output parameter
+    try {
+
+        for (int i = 0; i < 4; i++) { //4 octets in a valid subnet. ignore anything else, like a dangling subnet mask
+            int octet = std::stoi(octets[i]);
+
+            if (octet < 0 || octet > 255) return false;  // Invalid octet range
+
+            const uint8_t offset = (24 - (i * 8));
+            ip |= (octet << offset);
+        }
+        return true;  // Success
+
+    } catch (const std::exception& e) { // Conversion failed
+        ip = 0; 
+        return false;  
+    }
+}
+
+const bool create_subnet_mask(const std::string subnet_mask, uint32_t& results) {
+    int bits;
+    try { bits = std::stoi(subnet_mask);} //perform string to int conversion
+    catch(const std:: exception& e){ return false;}
+
+    if (bits < 0 || bits > 32) return false;    // Invalid input
+    else if (bits == 0) results = 0;              // All zeros
+    else if (bits == 32) results = 0xFFFFFFFF;    // All ones
+    else results = 0xFFFFFFFF << (32 - bits);   // no edge case, perform normal conversion
+
+    return true;
+}
