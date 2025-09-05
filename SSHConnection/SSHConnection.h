@@ -16,6 +16,7 @@ public:
     // Simple connect and execute
     bool connect(const std::string& hostname, const std::string& username, const std::string& password, int port = 22);
     std::string execute(const std::string& command);
+    void executeMultipleCommands(const std::vector<std::string>& commands);
     void disconnect();
     
     // Command handler for CommandDispatcher
@@ -25,6 +26,8 @@ private:
     LIBSSH2_SESSION* m_session;
     int m_socket;
     bool m_connected;
+    
+    static const std::vector<std::string> DISCOVERY_COMMANDS;
 };
 
 #endif // SSH_CONNECTION_H

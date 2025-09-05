@@ -137,6 +137,12 @@
    - Final solution: Fire-and-forget pattern - thread runs for process lifetime
    - Removed unnecessary start/stop lifecycle management
 
+2. **SSH Channel Error on Multiple Commands** (2025-01-05): Fixed channel cleanup
+   - Symptom: "Failed to open channel" when executing second command
+   - Root cause: Channel not properly closed before opening next one
+   - Solution: Added proper EOF and close sequence (send_eof, wait_eof, wait_closed)
+   - Impact: Can now run multiple commands in sequence on single SSH connection
+
 ---
 
 ## Future Enhancements
@@ -155,4 +161,4 @@
 
 ---
 
-*Last Updated: 2025-01-04*
+*Last Updated: 2025-01-05*

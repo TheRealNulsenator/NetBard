@@ -47,6 +47,7 @@ cartographer/
   - Simple connect/execute/disconnect model
   - Has handleCommand() method for CommandDispatcher integration
   - Requires: libssh2 library
+  - **Important**: Proper channel cleanup required between commands (send_eof, wait_eof, wait_closed)
 - User preference: No unnecessary abstraction layers (rejected Application class)
 
 ### Code Style
@@ -105,10 +106,11 @@ cartographer/
 - User clarified this is for MY context, not documentation
 
 ## Ongoing Work
-*Track incomplete tasks for resumption*
+- Testing SSH connection with multiple commands
+- Basic SSH functionality verified and working
 
 ## Critical Notes
 *Important warnings, gotchas, or user-specific requirements*
 
 ---
-*Last Updated: 2025-09-04 - This file preserves Claude's working context for the Cartographer project*
+*Last Updated: 2025-01-05 - This file preserves Claude's working context for the Cartographer project*

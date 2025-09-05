@@ -3,8 +3,23 @@
 #include <ws2tcpip.h>
 #include <winsock2.h>
 #include <libssh2.h>
+#include <thread>
+#include <chrono>
 
-#pragma comment(lib, "ws2_32.lib")
+const std::vector<std::string> SSHConnection::DISCOVERY_COMMANDS = {
+    "terminal length 0",                        // Return full output of all subsequent commands without dialogue
+    "show version",                            // Device model, IOS version, uptime
+    "show ip interface brief",                 // All interfaces with IP addresses
+    "show interfaces description",             // Interface descriptions
+    "show interface status",                   // Basic interface configurations
+    "show mac address-table",                  // All layer 2 traffic
+    "show ip route",                           // Routing table
+    "show cdp neighbors",                      // Connected Cisco devices
+    "show lldp neighbors",                     // Connected devices (standard protocol)
+    "show vlan brief",                         // VLAN configuration
+    "show interfaces trunk",                   // Trunk port details
+    "show spanning-tree summary"               // STP overview
+};
 
 SSHConnection::SSHConnection() : m_session(nullptr), m_socket(-1), m_connected(false) {
     // Initialize Winsock
@@ -27,7 +42,7 @@ bool SSHConnection::connect(const std::string& hostname, const std::string& user
     m_socket = socket(AF_INET, SOCK_STREAM, 0);
     
     // Connect to host
-    struct sockaddr_in sin;
+    struct sockaddr_in sin; // "socket in"
     sin.sin_family = AF_INET;
     sin.sin_port = htons(port);
     sin.sin_addr.s_addr = inet_addr(hostname.c_str());
@@ -95,8 +110,90 @@ std::string SSHConnection::execute(const std::string& command) {
         result += buffer;
     }
     
+    // Close and wait for remote to acknowledge
+    libssh2_channel_close(channel);
     libssh2_channel_free(channel);
+    
+
     return result;
+}
+
+void SSHConnection::executeMultipleCommands(const std::vector<std::string>& commands) {
+    if (!m_connected) {
+        std::cout << "Error: Not connected" << std::endl;
+        return;
+    }
+    
+    // Open a channel
+    LIBSSH2_CHANNEL* channel = libssh2_channel_open_session(m_session);
+    if (!channel) {
+        std::cout << "Error: Failed to open channel" << std::endl;
+        return;
+    }
+    
+    // Request a shell
+    if (libssh2_channel_shell(channel) != 0) {
+        std::cout << "Error: Failed to request shell" << std::endl;
+        libssh2_channel_free(channel);
+        return;
+    }
+    
+    // Set non-blocking mode for reading
+    libssh2_channel_set_blocking(channel, 0);
+    
+    // Wait for initial prompt and discard it
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    char buffer[4096];
+    while (libssh2_channel_read(channel, buffer, sizeof(buffer)-1) > 0) {
+        // Discard initial prompt/banner
+    }
+    
+    // Execute each command
+    for (const auto& command : commands) {
+        std::string cmd = command + "\n";
+        libssh2_channel_write(channel, cmd.c_str(), cmd.length());
+
+        // Read until we haven't received data for a short period
+        std::string output;
+        int bytesRead;
+        int emptyReads = 0;
+        const int MAX_EMPTY_READS = 10;  // 10 * 50ms = 500ms total timeout
+        
+        while (emptyReads < MAX_EMPTY_READS) {
+            bytesRead = libssh2_channel_read(channel, buffer, sizeof(buffer)-1);
+            
+            if (bytesRead > 0) {
+                buffer[bytesRead] = '\0';
+                output += buffer;
+                emptyReads = 0;  // Reset counter when we get data
+                
+                // Check if we've received a prompt (ends with > or #)
+                if (output.length() > 2) {
+                    size_t lastNewline = output.find_last_of('\n');
+                    if (lastNewline != std::string::npos) {
+                        std::string lastLine = output.substr(lastNewline + 1);
+                        if (!lastLine.empty() && 
+                            (lastLine.back() == '>' || lastLine.back() == '#')) {
+                            break;  // Found prompt, command complete
+                        }
+                    }
+                }
+            } else if (bytesRead == LIBSSH2_ERROR_EAGAIN) {
+                // No data available yet
+                emptyReads++;
+                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            } else {
+                // Error or channel closed
+                break;
+            }
+        }
+        
+        std::cout << output << std::endl;
+    }
+    
+    // Close channel
+    libssh2_channel_close(channel);
+    libssh2_channel_free(channel);
 }
 
 void SSHConnection::disconnect() {
@@ -120,10 +217,11 @@ bool SSHConnection::handleCommand(const std::vector<std::string>& arguments) {
     std::string password = arguments[2];
     
     if (connect(hostname, username, password)) {
-        std::string result = execute("hostname");
-        std::cout << "Hostname: " << result << std::endl;
+        // Execute all discovery commands using shell mode
+        executeMultipleCommands(DISCOVERY_COMMANDS);
         disconnect();
     }
     
     return true;
+
 }
