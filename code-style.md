@@ -23,7 +23,7 @@
 - **Spaces**: Around operators, after commas
 
 ## Best Practices
-- No magic numbers - use named constants
+- No magic numbers or characters - use named constants/arrays
 - One declaration per line
 - Initialize variables at declaration when possible
 - Use const where appropriate

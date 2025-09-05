@@ -34,13 +34,15 @@
 ### File Structure
 ```
 cartographer/
-├── main.cpp (orchestrates program, no class/function definitions)
-├── CommandDispatcher/
+├── main.cpp (entry point at root level)
+├── include/
 │   ├── CommandDispatcher.h
-│   └── CommandDispatcher.cpp
-├── InputHandler/
 │   ├── InputHandler.h
-│   └── InputHandler.cpp
+│   └── SSHConnection.h
+├── src/
+│   ├── CommandDispatcher.cpp
+│   ├── InputHandler.cpp
+│   └── SSHConnection.cpp
 ├── knowledge.md (this file - LLM context)
 ├── code-style.md (C++ style guide)
 └── project-log.md (human-readable project decisions/history)
@@ -77,6 +79,8 @@ cartographer/
 - **Function naming**: User renamed executeMultipleCommands to executeShell (more accurate)
 - **Constants**: User adds descriptive constants like CHECK_INTERVAL_MS with comments
 - **Code organization**: Implementation details go in helper functions, main flow stays clean
+- **Magic value elimination**: Replace hardcoded chars with named constant arrays (PROMPT_ENDINGS)
+- **Scalable patterns**: Use loops/arrays instead of hardcoded conditionals for extensibility
 
 ### Important Functions/Classes
 - **InputHandler**: Fire-and-forget detached thread, runs for process lifetime

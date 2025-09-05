@@ -9,7 +9,8 @@
       "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer\\InputHandler/**)",
       "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer\\InputHandler/**)",
       "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer\\CommandDispatcher/**)",
-      "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer\\CommandDispatcher/**)"
+      "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer\\CommandDispatcher/**)",
+      "Bash(move:*)"
     ],
     "deny": [],
     "ask": []

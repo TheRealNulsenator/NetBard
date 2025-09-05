@@ -33,10 +33,6 @@
 - **Rationale**: Start with simple CLI interface, can add GUI later if needed
 - **Implementation**: Using Windows console I/O (conio.h) for non-blocking keyboard input
 
-### 2025-01-04: Exit Mechanism
-- **Decision**: Use ESC key as program exit trigger
-- **Rationale**: Standard convention, doesn't interfere with typical input
-- **Alternative considered**: Ctrl+C (rejected - too abrupt, no cleanup opportunity)
 
 ### 2025-01-04: InputHandler Simplification
 - **Decision**: Fire-and-forget detached thread pattern
@@ -47,6 +43,16 @@
 ---
 
 ## Technical Adjustments
+
+### 2025-01-06: Directory Structure Reorganization
+- **Decision**: Moved to traditional include/src folder structure
+- **Rationale**: Better maintainability and industry standard organization
+- **Changes**:
+  - Headers moved to `include/`
+  - Implementation files moved to `src/`
+  - main.cpp kept at root (user preference)
+  - Updated tasks.json to use new paths
+- **Benefits**: Cleaner separation, easier to navigate, standard C++ project layout
 
 ### 2025-01-06: SSH Implementation Refinements
 - **Time spent**: ~1 hour debugging and refactoring

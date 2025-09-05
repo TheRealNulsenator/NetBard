@@ -20,6 +20,8 @@ const std::vector<std::string> SSHConnection::DISCOVERY_COMMANDS = {
     "show spanning-tree summary"               // STP overview
 };
 
+const std::vector<char> SSHConnection::PROMPT_ENDINGS = {'>', '#', '$', '%'};
+
 SSHConnection::SSHConnection() : m_session(nullptr), m_socket(-1), m_connected(false) {
     // Initialize Winsock
     WSADATA wsadata;
@@ -184,16 +186,21 @@ std::string SSHConnection::waitShellPrompt(LIBSSH2_CHANNEL* channel, char* buffe
         output += buffer;
         emptyReads = 0;  // Reset counter when we get data
 
-        // Check if we've received a prompt (ends with > or #)
+        // Check if we've received a prompt
         if (output.length() <= 2) continue;
         
         size_t lastNewline = output.find_last_of('\n');
         if (lastNewline == std::string::npos) continue;
         
         std::string lastLine = output.substr(lastNewline + 1);
-        if (!lastLine.empty() && 
-            (lastLine.back() == '>' || lastLine.back() == '#')) {
-            break;  // Found prompt, command complete
+        if (lastLine.empty()) continue;
+        
+        // Check if last character matches any prompt ending
+        char lastChar = lastLine.back();
+        for (char promptChar : PROMPT_ENDINGS) {
+            if (lastChar == promptChar) {
+                return output;  // Found prompt, command complete
+            }
         }
     }
         return output;
@@ -211,12 +218,12 @@ void SSHConnection::disconnect() {
 
 bool SSHConnection::handleCommand(const std::vector<std::string>& arguments) {
     if (arguments.size() < 3) {
-        std::cout << "Usage: ssh <username> <hostname> <password>" << std::endl;
+        std::cout << "Usage: ssh <hostname> <username> <password>" << std::endl;
         return true;
     }
     
-    std::string username = arguments[0];
-    std::string hostname = arguments[1];
+    std::string hostname = arguments[0];
+    std::string username = arguments[1];
     std::string password = arguments[2];
     
     if (connect(hostname, username, password)) {

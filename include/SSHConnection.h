@@ -29,6 +29,7 @@ private:
     bool m_connected;
     
     static const std::vector<std::string> DISCOVERY_COMMANDS;
+    static const std::vector<char> PROMPT_ENDINGS;
 };
 
 #endif // SSH_CONNECTION_H
