@@ -48,6 +48,13 @@
 
 ## Technical Adjustments
 
+### 2025-01-06: SSH Implementation Refinements
+- **Time spent**: ~1 hour debugging and refactoring
+- **Refactored waitShellPrompt()**: Applied guard clauses to reduce nesting from 4 to 2 levels
+- **Improved function naming**: executeMultipleCommands → executeShell (user correction)
+- **Added command list**: Centralized network discovery commands in static const vector
+- **Code organization**: Extracted prompt waiting logic to separate function for clarity
+
 ### 2025-01-04: Code Quality Standards
 - Established code style guide (code-style.md)
 - Eliminated magic numbers - using named constants
@@ -137,11 +144,15 @@
    - Final solution: Fire-and-forget pattern - thread runs for process lifetime
    - Removed unnecessary start/stop lifecycle management
 
-2. **SSH Channel Error on Multiple Commands** (2025-01-05): Fixed channel cleanup
+2. **SSH Channel Error on Multiple Commands** (2025-01-05): Fixed with shell mode
    - Symptom: "Failed to open channel" when executing second command
-   - Root cause: Channel not properly closed before opening next one
-   - Solution: Added proper EOF and close sequence (send_eof, wait_eof, wait_closed)
-   - Impact: Can now run multiple commands in sequence on single SSH connection
+   - Root cause: Some devices limit one channel per SSH session
+   - Initial attempt: Added proper channel cleanup (didn't work)
+   - Final solution: Implemented shell mode - single channel for all commands
+   - Added `executeShell()` for multi-command execution
+   - Added `waitShellPrompt()` to detect command completion via prompt
+   - Refactored prompt waiting to reduce nesting using guard clauses
+   - Impact: Reliably executes multiple commands on restrictive devices
 
 ---
 
@@ -161,4 +172,4 @@
 
 ---
 
-*Last Updated: 2025-01-05*
+*Last Updated: 2025-01-06*

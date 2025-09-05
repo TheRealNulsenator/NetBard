@@ -6,6 +6,21 @@
 **Git:** Not initialized  
 **User:** Working on Grantek OneDrive  
 
+## Documentation Responsibilities
+**IMPORTANT: Update these files continuously throughout our work:**
+- **knowledge.md** (this file): My working memory and governing document
+  - Update silently with every relevant change
+  - Track context, patterns, user preferences
+  - Instructions for how I should operate
+- **code-style.md**: Document user's coding preferences as I observe them
+  - Update when user demonstrates new patterns
+  - Track refactoring approaches, naming conventions, style choices
+- **project-log.md**: Track work like reporting to a boss
+  - Document time spent on issues
+  - Record decisions made and rationale
+  - Note large improvements and accomplishments
+  - Include troubleshooting journeys and solutions
+
 ## What I Know About This Project
 - Entry point: main.cpp
 - Purpose: Network Cartographer - network mapping/visualization tool
@@ -56,7 +71,12 @@ cartographer/
 - Simple, widely-accepted C++ conventions
 
 ### Key Code Patterns
-*Will document as I learn them*
+- **Guard clauses**: Use early returns/continue to flatten nested code
+- **Refactoring for clarity**: Extract wait/prompt logic to separate functions
+- **Buffer reuse**: Pass buffers to avoid repeated allocations
+- **Function naming**: User renamed executeMultipleCommands to executeShell (more accurate)
+- **Constants**: User adds descriptive constants like CHECK_INTERVAL_MS with comments
+- **Code organization**: Implementation details go in helper functions, main flow stays clean
 
 ### Important Functions/Classes
 - **InputHandler**: Fire-and-forget detached thread, runs for process lifetime
@@ -66,6 +86,10 @@ cartographer/
 ## User Preferences & Patterns
 - **KISS principle** - Don't add code for future scenarios
 - No premature abstraction or "future enhancement" comments
+- **Documentation discipline**: Expects continuous updates to markdown files
+- **Refactoring style**: Extract complex logic, use guard clauses, flatten nesting
+- **Function naming**: Prefers accurate names (executeShell vs executeMultipleCommands)
+- **Code reviews**: Will call out when documentation isn't being maintained
 
 ## Technical Considerations
 - Windows ssh.exe has crypto restrictions that affect legacy device connections
@@ -106,11 +130,15 @@ cartographer/
 - User clarified this is for MY context, not documentation
 
 ## Ongoing Work
-- Testing SSH connection with multiple commands
-- Basic SSH functionality verified and working
+- ✅ SSH shell mode successfully implemented (2025-01-06)
+  - Fixed "Failed to open channel" error by using shell mode
+  - Refactored waitShellPrompt() using guard clauses
+  - Added automated discovery commands for network devices
+- Current: SSH connection working reliably with multiple commands
 
 ## Critical Notes
-*Important warnings, gotchas, or user-specific requirements*
+- **Must maintain documentation**: User explicitly requires updating knowledge.md, code-style.md, and project-log.md throughout work
+- **SSH device limitation**: Some network devices only allow one channel per session - use shell mode for multiple commands
 
 ---
-*Last Updated: 2025-01-05 - This file preserves Claude's working context for the Cartographer project*
+*Last Updated: 2025-01-06 - This file preserves Claude's working context for the Cartographer project*

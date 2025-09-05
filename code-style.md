@@ -28,20 +28,32 @@
 - Initialize variables at declaration when possible
 - Use const where appropriate
 - Prefer nullptr over NULL
+- **Guard clauses**: Use early returns/continue to flatten nested code
+- **Extract complex logic**: Move implementation details to separate functions
+- **Function focus**: Keep functions focused on their primary purpose
+- **Buffer reuse**: Pass buffers as parameters to avoid repeated allocations
 
 ## Comments
 - Use // for single-line comments
 - Place comments above the code they describe
 - Keep comments concise and meaningful
+- **Inline comments**: Use sparingly, only for non-obvious logic
+- Comments on same line as code for brief clarifications
 
 ## Headers
 - Include guards or #pragma once
 - System headers before project headers
 - Alphabetical order within each group
 
+## Refactoring Patterns
+- **Reduce nesting**: Use guard clauses to handle edge cases first
+- **Extract helper functions**: Move repetitive or complex logic to dedicated functions
+- **Clear separation**: Keep high-level flow separate from implementation details
+
 ## Example
 ```cpp
 const int MAX_CONNECTIONS = 100;
+const int CHECK_INTERVAL_MS = 100;  // Descriptive constant names
 
 class NetworkManager {
 public:
@@ -51,5 +63,17 @@ public:
 private:
     int m_connectionCount;
     bool m_isActive;
+    
+    // Helper functions for complex operations
+    std::string waitForResponse(Channel* channel, char* buffer);
 };
+
+// Guard clause example
+void processData(int value) {
+    if (value < 0) return;  // Guard clause
+    if (!isValid(value)) return;  // Another guard
+    
+    // Main logic here, not nested
+    performOperation(value);
+}
 ```
