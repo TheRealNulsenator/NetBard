@@ -23,16 +23,16 @@ void CommandDispatcher::initializeBuiltInCommands() {
 
 bool CommandDispatcher::handleHelp(const std::vector<std::string>& arguments) {
     std::cout << "\nAvailable commands:" << std::endl;
-    std::cout << "  help  - Show this message" << std::endl;
-    std::cout << "  quit  - Exit the program" << std::endl;
-    std::cout << "  exit  - Exit the program" << std::endl;
+    std::cout << "  help    -   Show this message" << std::endl;
+    std::cout << "  quit    -   Exit the program" << std::endl;
+    std::cout << "  exit    -   Exit the program" << std::endl;
     
     // Show registered commands (excluding built-ins we just listed)
     for (const auto& commandPair : m_commands) {
         const std::string& commandName = commandPair.first;
         const std::string& tip = m_tips[commandName];
         if (commandName != "help" && commandName != "quit" && commandName != "exit") {
-            std::cout << "  " << commandName << " - " << tip << std::endl;
+            std::cout << commandName << "   -   " << tip << std::endl;
         }
     }
     

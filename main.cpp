@@ -5,6 +5,7 @@
 #include "InputHandler.h"
 #include "CommandDispatcher.h"
 #include "SSHConnection.h"
+#include "SubnetScanner.h"
 
 const int MAIN_LOOP_DELAY_MS = 10;
 
@@ -19,11 +20,16 @@ int main() {
     InputHandler inputHandler;  // Starts collecting input immediately
     CommandDispatcher commandDispatcher; // Register callbacks to this
     SSHConnection sshConnection;
+    SubnetScanner subnetScanner;
     
     // Register SSH command using std::bind
     commandDispatcher.registerCommand("ssh", 
         std::bind(&SSHConnection::handleCommand, &sshConnection, std::placeholders::_1),
         "Test SSH connection to a host");
+
+    commandDispatcher.registerCommand("scan", 
+        std::bind(&SubnetScanner::handleCommand, &subnetScanner, std::placeholders::_1),
+        "search for alive hosts in a subnet");
 
     bool running = true;
 

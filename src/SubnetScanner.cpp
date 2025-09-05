@@ -2,20 +2,39 @@
 #include "SubnetScanner.h"
 #include <string>
 #include <iostream>
+#include <algorithm>
+#include <bitset>
 
 
-const bool SubnetScanner::create_host_list(const std::string cidr, std::vector<std::string>)
+
+bool SubnetScanner::handleCommand(const std::vector<std::string>& arguments) {
+
+    if (arguments.size() == 1) {
+        const std::string cidr = arguments[0];
+        std::cout << "scanning subnet " << cidr << "..." << std::endl;
+        create_host_list(cidr);
+    }
+    else{
+        std::cout << "Usage: scan <cidr>" << std::endl;
+        return true;
+    }
+    
+    return true;
+}
+
+const bool SubnetScanner::create_host_list(const std::string cidr)
 {
-    const std::vector<std::string> hosts;
 
     std::vector<std::string> cidr_parts; //stores individual parts of subnet
-    if (!unwrap_cidr(cidr, cidr_parts))  std::cout << "Invalid CIDR (###.###.###.###/#)"; return false; 
+    if (!unwrap_cidr(cidr, cidr_parts)) { std::cout << "Invalid CIDR (#.#.#.#/#)" << std::endl; return false;} 
    
-    uint32_t ip; //extracts octets into binary address
-    if (!address_to_bits(cidr_parts, ip)) std::cout << "Invalid Address" << std::endl; return false;
+    uint32_t ip; //binary address built of extracted octets
+    if (!address_to_bits(cidr_parts, ip)) { std::cout << "Invalid Address" << std::endl; return false;}
         
     uint32_t mask; //extracts subnet mask shorthand into binary mask
-    if (!create_subnet_mask(cidr_parts.back(), mask)) std::cout << "Invalid Subnet" << std::endl; return false;
+    if (!create_subnet_mask(cidr_parts.back(), mask)) { std::cout << "Invalid Subnet" << std::endl; return false;}
+
+    std::cout << std::bitset<32>(ip) << " " << std::bitset<32>(mask) << std::endl;
     
     return true;
 }
@@ -44,7 +63,7 @@ const bool SubnetScanner::unwrap_cidr(const std::string cidr, std::vector<std::s
     const bool valid_mask_count = std::count(cidr.begin(), cidr.end(), '/') == 1 || std::count(cidr.begin(), cidr.end(), '\\') == 1;
     const bool valid_token_count = results.size() == 5;
     //check for 4 total octets, and check for subnet with either forward or backslash
-    return  valid_octet_count && valid_mask_count && valid_token_count;
+    return valid_octet_count && valid_mask_count && valid_token_count;
 }
 
 const bool SubnetScanner::address_to_bits(const std::vector<std::string> octets, uint32_t& ip)
@@ -68,7 +87,7 @@ const bool SubnetScanner::address_to_bits(const std::vector<std::string> octets,
     }
 }
 
-const bool create_subnet_mask(const std::string subnet_mask, uint32_t& results) {
+const bool SubnetScanner::create_subnet_mask(const std::string subnet_mask, uint32_t& results) {
     int bits;
     try { bits = std::stoi(subnet_mask);} //perform string to int conversion
     catch(const std:: exception& e){ return false;}
@@ -79,4 +98,23 @@ const bool create_subnet_mask(const std::string subnet_mask, uint32_t& results) 
     else results = 0xFFFFFFFF << (32 - bits);   // no edge case, perform normal conversion
 
     return true;
+}
+
+
+const std::vector<uint32_t> subnet_address_range(const uint32_t ip, const uint32_t mask)
+{
+
+    const uint32_t network_address = ip & mask;
+    const uint32_t broadcast_address = ip | ~mask;
+
+    std::cout << "Network Address: " << network_address << "    " << "Broadcast Address: " << broadcast_address << std::endl;
+
+    std::vector<uint32_t> addresses;
+    for (uint32_t address = network_address + 1; address < broadcast_address; address++){
+        addresses.push_back(address);
+    }
+
+    std::cout << "Unique Addresses: " << addresses.size() << std::endl;
+
+    return addresses;
 }
