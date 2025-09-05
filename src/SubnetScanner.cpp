@@ -35,6 +35,7 @@ const bool SubnetScanner::create_host_list(const std::string cidr)
     if (!create_subnet_mask(cidr_parts.back(), mask)) { std::cout << "Invalid Subnet" << std::endl; return false;}
 
     std::cout << std::bitset<32>(ip) << " " << std::bitset<32>(mask) << std::endl;
+    std::vector<uint32_t> binary_addresses = subnet_address_range(ip, mask);
     
     return true;
 }
@@ -101,13 +102,13 @@ const bool SubnetScanner::create_subnet_mask(const std::string subnet_mask, uint
 }
 
 
-const std::vector<uint32_t> subnet_address_range(const uint32_t ip, const uint32_t mask)
+const std::vector<uint32_t> SubnetScanner::subnet_address_range(const uint32_t ip, const uint32_t mask)
 {
 
     const uint32_t network_address = ip & mask;
     const uint32_t broadcast_address = ip | ~mask;
 
-    std::cout << "Network Address: " << network_address << "    " << "Broadcast Address: " << broadcast_address << std::endl;
+    std::cout << "Network: " << std::bitset<32>(network_address) << "    " << "Broadcast: " << std::bitset<32>(broadcast_address)  << std::endl;
 
     std::vector<uint32_t> addresses;
     for (uint32_t address = network_address + 1; address < broadcast_address; address++){
