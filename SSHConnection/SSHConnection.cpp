@@ -137,19 +137,12 @@ void SSHConnection::executeShell(const std::vector<std::string>& commands) {
         return;
     }
     
-    // Set non-blocking mode for reading
-    libssh2_channel_set_blocking(channel, 0);
-    
-    // Wait for initial prompt and discard it
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    char buffer[4096];
-    while (libssh2_channel_read(channel, buffer, sizeof(buffer)-1) > 0) {
-        // Discard initial prompt/banner
-    }
-    
-    // Execute each command
+    libssh2_channel_set_blocking(channel, 0);    // Set non-blocking mode for reading
+    char buffer[4096];  //we will use this buffer a lot in the loop below
+
+    waitShellPrompt(channel, buffer);    // Wait for initial prompt
     std::string output;
-    for (const auto& command : commands) {
+    for (const auto& command : commands) {    // Execute each command
         std::string cmd = command + "\n";
         libssh2_channel_write(channel, cmd.c_str(), cmd.length());
         output = waitShellPrompt(channel, buffer);
@@ -175,28 +168,32 @@ std::string SSHConnection::waitShellPrompt(LIBSSH2_CHANNEL* channel, char* buffe
     while (emptyReads < MAX_EMPTY_READS) {
         bytesRead = libssh2_channel_read(channel, buffer, sizeof(buffer)-1);
         
-        if (bytesRead > 0) {
-            buffer[bytesRead] = '\0';
-            output += buffer;
-            emptyReads = 0;  // Reset counter when we get data
-
-            if (output.length() > 2) {  // Check if we've received a prompt (ends with > or #)
-                size_t lastNewline = output.find_last_of('\n');
-                if (lastNewline != std::string::npos) {
-                    std::string lastLine = output.substr(lastNewline + 1);
-                    if (!lastLine.empty() && 
-                        (lastLine.back() == '>' || lastLine.back() == '#')) {
-                        break;  // Found prompt, command complete
-                    }
-                }
-            }
-        } else if (bytesRead == LIBSSH2_ERROR_EAGAIN) {
+        if (bytesRead == LIBSSH2_ERROR_EAGAIN) {
             // No data available yet
             emptyReads++;
             std::this_thread::sleep_for(std::chrono::milliseconds(CHECK_INTERVAL_MS));
-        } else {
+            continue;
+        }
+        
+        if (bytesRead <= 0) {
             // Error or channel closed
             break;
+        }
+        
+        buffer[bytesRead] = '\0';
+        output += buffer;
+        emptyReads = 0;  // Reset counter when we get data
+
+        // Check if we've received a prompt (ends with > or #)
+        if (output.length() <= 2) continue;
+        
+        size_t lastNewline = output.find_last_of('\n');
+        if (lastNewline == std::string::npos) continue;
+        
+        std::string lastLine = output.substr(lastNewline + 1);
+        if (!lastLine.empty() && 
+            (lastLine.back() == '>' || lastLine.back() == '#')) {
+            break;  // Found prompt, command complete
         }
     }
         return output;
