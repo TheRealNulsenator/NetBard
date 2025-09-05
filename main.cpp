@@ -17,7 +17,7 @@ int main() {
     
     // Initialize major components
     InputHandler inputHandler;  // Starts collecting input immediately
-    CommandDispatcher commandDispatcher;
+    CommandDispatcher commandDispatcher; // Register callbacks to this
     SSHConnection sshConnection;
     
     // Register SSH command using std::bind

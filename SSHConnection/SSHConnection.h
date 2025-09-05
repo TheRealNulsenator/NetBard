@@ -16,7 +16,8 @@ public:
     // Simple connect and execute
     bool connect(const std::string& hostname, const std::string& username, const std::string& password, int port = 22);
     std::string execute(const std::string& command);
-    void executeMultipleCommands(const std::vector<std::string>& commands);
+    void executeShell(const std::vector<std::string>& commands);
+    std::string waitShellPrompt(LIBSSH2_CHANNEL* channel, char* buffer);
     void disconnect();
     
     // Command handler for CommandDispatcher
