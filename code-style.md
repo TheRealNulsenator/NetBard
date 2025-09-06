@@ -66,6 +66,15 @@
 - **Extract helper functions**: Move repetitive or complex logic to dedicated functions
 - **Clear separation**: Keep high-level flow separate from implementation details
 
+## Threading Patterns
+- **Thread creation**: Use `emplace_back` to avoid copy construction
+- **Lambda captures**: `[&, capture_by_value]` for thread lambdas
+- **Mutex usage**: Always use `lock_guard` for RAII-style locking
+- **Critical sections**: Minimize scope of mutex locks
+- **Resource per thread**: Create thread-local resources (e.g., ICMP handles) for thread safety
+- **Thread joining**: Always join threads before function exit
+- **Shared data protection**: Use mutex for any shared data structure modifications
+
 ## Example
 ```cpp
 const int MAX_CONNECTIONS = 100;

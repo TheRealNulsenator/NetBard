@@ -72,12 +72,16 @@ cartographer/
   - Converts IP addresses to binary representation (uint32_t)
   - Creates subnet masks from CIDR notation
   - Generates address ranges for scanning
-  - **Ping implementation**: Windows ICMP API
+  - **Ping implementation**: Windows ICMP API (multithreaded)
     - Uses IcmpSendEcho for host discovery
-    - Optimized: WSAStartup called once per scan
-    - Optimized: ICMP handle reused across all pings
-    - 1 second timeout per host
-    - Stores alive hosts in subnet_hosts vector
+    - **Threading model**: One thread per IP address
+    - Each thread gets its own ICMP handle (thread safety)
+    - Retry logic: 4 attempts per host, 500ms timeout each
+    - WSAStartup called once for entire scan
+    - Mutex protection for console output and subnet_hosts vector
+    - Uses emplace_back to avoid thread copy construction
+    - 50ms delay between thread spawns (protect old PLCs)
+    - **Planned**: Custom semaphore for thread limiting (MAX_THREADS=100)
   - Has handleCommand() method for CommandDispatcher integration
   - Command: `scan <cidr>` (e.g., scan 192.168.1.0/24)
   - Requires linking: -lws2_32 -liphlpapi
@@ -160,7 +164,10 @@ cartographer/
   - Subnet mask generation from CIDR notation
   - Address range calculation for host discovery
   - Ping functionality using Windows ICMP API
-  - Performance optimizations for batch scanning
+  - Multithreaded scanning implementation
+  - Fixed memory leak in ping retry logic
+  - Fixed ICMP handle thread safety issues
+- Current: Implementing custom semaphore for thread limiting
 
 ## Critical Notes
 - **Must maintain documentation**: User explicitly requires updating knowledge.md, code-style.md, and project-log.md throughout work

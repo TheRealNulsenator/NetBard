@@ -74,14 +74,14 @@ const bool SubnetScanner::find_hosts(const std::string cidr)
         threads.emplace_back([&, binary_ip](HANDLE handle) { 
             std::string address = bits_to_address(binary_ip);
             
-            if (pingHost(address, handle)) { //critical code section that can block other threads
-                std::lock_guard<std::mutex> lock(output_mutex);
+            if (pingHost(address, handle)) { 
+                std::lock_guard<std::mutex> lock(output_mutex); //critical code section that can block other threads
                 std::cout << address << " is alive" << std::endl;
                 subnet_hosts.push_back(address);          
             }
                 
         }, icmp_handle);
-        // Delay how quickly we spin up threads to avoid faulting old PLC processors win ping storm
+        // Delay how quickly we spin up threads to avoid faulting old PLC processors with ping storm
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
         

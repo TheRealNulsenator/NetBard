@@ -70,33 +70,58 @@
   - Subnet mask generation from CIDR notation
   - Address range calculation for host discovery
   - **Ping functionality**: Windows ICMP API integration
-- **Implementation Details**:
-  - Uses uint32_t for binary IP representation
-  - Validates input at each parsing stage
-  - Returns meaningful error messages for invalid input
-  - Calculates network and broadcast addresses
-  - Generates list of scannable host addresses
-  - **ICMP Ping Implementation**:
-    - Uses Windows IcmpCreateFile/IcmpSendEcho API
-    - 1 second timeout per host
-    - Stores discovered hosts in subnet_hosts vector
+  - **Multithreaded scanning**: One thread per IP address
+
+#### Initial Implementation (Single-threaded)
+- **ICMP Ping Implementation**:
+  - Uses Windows IcmpCreateFile/IcmpSendEcho API
+  - 1 second timeout per host
+  - Stores discovered hosts in subnet_hosts vector
 - **Performance Optimizations** (user-driven):
   - WSAStartup/WSACleanup called once per scan (not per ping)
   - ICMP handle created once and reused for all pings
   - Result: Significantly faster subnet scanning
+
+#### Multithreading Milestone (2025-09-06)
+- **Threading Implementation**:
+  - One thread spawned per IP address to scan
+  - Each thread gets its own ICMP handle (thread safety)
+  - 50ms delay between thread spawns (protect old PLCs from ping storms)
+  - Uses `emplace_back` to avoid thread copy construction
+- **Retry Logic Added**:
+  - 4 attempts per host
+  - 500ms timeout per attempt
+  - Early exit on success
+- **Thread Safety**:
+  - Mutex protection for console output
+  - Mutex protection for subnet_hosts vector (removed separate mutex, combined into single critical section)
+- **Bug Fixes** (user-identified):
+  1. **Memory leak**: Fixed - buffer now freed on both success and failure paths
+  2. **ICMP handle sharing**: Fixed - each thread creates its own handle
+  3. **Thread limit not enforced**: Identified - MAX_THREADS defined but not used (planned fix with semaphore)
+
 - **Code patterns**:
+  - Lambda captures in thread creation `[&, binary_ip]`
+  - RAII pattern with `lock_guard` for mutex management
+  - Resource cleanup in all code paths
   - Extensive use of const return types for safety
   - Early return validation pattern
   - Descriptive variable names (e.g., `valid_octet_count`, `valid_mask_count`)
   - Comments explaining edge cases and logic
   - Resource management: proper cleanup of Windows handles
+
+- **Next Steps**:
+  - Implement custom semaphore for thread limiting (MAX_THREADS=100)
+  - Consider C++20 `std::counting_semaphore` when available
+
 - **Cleanup performed**:
   - Fixed header guard from `SUBNET_PINGER_H` to `SUBNET_SCANNER_H`
-  - Removed unused includes (`<thread>`, `<mutex>` from header)
+  - Removed unused includes (`<thread>`, `<mutex>` from header - moved to cpp)
   - Removed duplicate include (`<string>` from cpp)
   - Added required includes (`<cstdint>` for uint32_t, Windows headers for ICMP)
   - Fixed typo: `subnet_cider` → `subnet_cidr`
   - Result: Cleaner headers, faster compile times
+
 - **Build configuration updated**:
   - Added -liphlpapi to tasks.json for ICMP API functions
   - Already had -lws2_32 for Winsock
