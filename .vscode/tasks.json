@@ -16,6 +16,7 @@
                 "src\\SubnetScanner.cpp",
                 "-lssh2",
                 "-lws2_32",
+                "-liphlpapi",
                 "-o",
                 "${fileDirname}\\cartographer.exe"
             ],

@@ -62,30 +62,44 @@
 
 ## Technical Adjustments
 
-### 2025-09-05: SubnetScanner Implementation
-- **Decision**: Implemented network subnet scanning component
+### 2025-09-05 - 2025-09-06: SubnetScanner Implementation
+- **Decision**: Implemented network subnet scanning component with ping functionality
 - **Features**:
   - CIDR notation parsing with flexible delimiter support (/ or \)
   - Binary IP address conversion using bitwise operations
   - Subnet mask generation from CIDR notation
   - Address range calculation for host discovery
+  - **Ping functionality**: Windows ICMP API integration
 - **Implementation Details**:
   - Uses uint32_t for binary IP representation
   - Validates input at each parsing stage
   - Returns meaningful error messages for invalid input
   - Calculates network and broadcast addresses
   - Generates list of scannable host addresses
+  - **ICMP Ping Implementation**:
+    - Uses Windows IcmpCreateFile/IcmpSendEcho API
+    - 1 second timeout per host
+    - Stores discovered hosts in subnet_hosts vector
+- **Performance Optimizations** (user-driven):
+  - WSAStartup/WSACleanup called once per scan (not per ping)
+  - ICMP handle created once and reused for all pings
+  - Result: Significantly faster subnet scanning
 - **Code patterns**:
   - Extensive use of const return types for safety
   - Early return validation pattern
   - Descriptive variable names (e.g., `valid_octet_count`, `valid_mask_count`)
   - Comments explaining edge cases and logic
+  - Resource management: proper cleanup of Windows handles
 - **Cleanup performed**:
   - Fixed header guard from `SUBNET_PINGER_H` to `SUBNET_SCANNER_H`
   - Removed unused includes (`<thread>`, `<mutex>` from header)
   - Removed duplicate include (`<string>` from cpp)
-  - Added required includes (`<cstdint>` for uint32_t)
+  - Added required includes (`<cstdint>` for uint32_t, Windows headers for ICMP)
+  - Fixed typo: `subnet_cider` → `subnet_cidr`
   - Result: Cleaner headers, faster compile times
+- **Build configuration updated**:
+  - Added -liphlpapi to tasks.json for ICMP API functions
+  - Already had -lws2_32 for Winsock
 
 ### 2025-01-06: Directory Structure Reorganization
 - **Decision**: Moved to traditional include/src folder structure
@@ -162,6 +176,9 @@
 |---------|---------|-------|-------|
 | iostream | Standard I/O | 2025-01-04 | Core C++ |
 | conio.h | Console input | 2025-01-04 | Windows-specific |
+| libssh2 | SSH connections | 2025-01-05 | For legacy device support |
+| ws2_32 | Winsock | 2025-09-06 | Windows networking |
+| iphlpapi | ICMP API | 2025-09-06 | Windows ping functionality |
 
 ---
 
@@ -226,4 +243,4 @@
 
 ---
 
-*Last Updated: 2025-09-05*
+*Last Updated: 2025-09-06*

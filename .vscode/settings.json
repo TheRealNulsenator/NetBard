@@ -70,6 +70,7 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "array": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "semaphore": "cpp"
     }
 }

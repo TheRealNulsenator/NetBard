@@ -32,7 +32,7 @@ bool CommandDispatcher::handleHelp(const std::vector<std::string>& arguments) {
         const std::string& commandName = commandPair.first;
         const std::string& tip = m_tips[commandName];
         if (commandName != "help" && commandName != "quit" && commandName != "exit") {
-            std::cout << commandName << "   -   " << tip << std::endl;
+            std::cout << "  " << commandName << "   -   " << tip << std::endl;
         }
     }
     

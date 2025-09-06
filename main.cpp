@@ -10,6 +10,7 @@
 const int MAIN_LOOP_DELAY_MS = 10;
 
 int main() {
+    std::cout << std::endl;
     std::cout << "Network Cartographer" << std::endl;
     std::cout << "Grantek - Brad Nulsen (2025)" << std::endl;
     std::cout << "\nType 'help' for commands, 'quit' to exit" << std::endl;

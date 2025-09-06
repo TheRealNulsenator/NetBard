@@ -35,6 +35,9 @@
 - **Buffer reuse**: Pass buffers as parameters to avoid repeated allocations
 - **Validation**: Validate input parameters early and return meaningful error indicators
 - **Bit manipulation**: Use explicit types (uint32_t) and bitwise operations for network address handling
+- **Resource optimization**: Initialize expensive resources (WSAStartup, handles) once and reuse
+- **Resource management**: Always clean up handles/resources in reverse order of acquisition
+- **Performance**: Pass handles/resources as parameters when reusable across iterations
 
 ## Comments
 - Use // for single-line comments

@@ -69,11 +69,18 @@ cartographer/
   - **Important**: Proper channel cleanup required between commands (send_eof, wait_eof, wait_closed)
 - **SubnetScanner**: Network subnet scanning and host discovery
   - Handles CIDR notation parsing (supports both / and \ delimiters)
-  - Converts IP addresses to binary representation
+  - Converts IP addresses to binary representation (uint32_t)
   - Creates subnet masks from CIDR notation
   - Generates address ranges for scanning
+  - **Ping implementation**: Windows ICMP API
+    - Uses IcmpSendEcho for host discovery
+    - Optimized: WSAStartup called once per scan
+    - Optimized: ICMP handle reused across all pings
+    - 1 second timeout per host
+    - Stores alive hosts in subnet_hosts vector
   - Has handleCommand() method for CommandDispatcher integration
   - Command: `scan <cidr>` (e.g., scan 192.168.1.0/24)
+  - Requires linking: -lws2_32 -liphlpapi
 - User preference: No unnecessary abstraction layers (rejected Application class)
 
 ### Code Style
@@ -147,11 +154,13 @@ cartographer/
   - Fixed "Failed to open channel" error by using shell mode
   - Refactored waitShellPrompt() using guard clauses
   - Added automated discovery commands for network devices
-- Current: SubnetScanner implementation (2025-09-05)
+- ✅ SubnetScanner implementation (2025-09-05 - 2025-09-06)
   - CIDR notation parsing with flexible delimiters
   - Binary IP address conversion and manipulation
   - Subnet mask generation from CIDR notation
   - Address range calculation for host discovery
+  - Ping functionality using Windows ICMP API
+  - Performance optimizations for batch scanning
 
 ## Critical Notes
 - **Must maintain documentation**: User explicitly requires updating knowledge.md, code-style.md, and project-log.md throughout work
@@ -211,4 +220,4 @@ cartographer/
 - Check for trailing whitespace
 
 ---
-*Last Updated: 2025-09-05 - This file preserves Claude's working context for the Cartographer project*
+*Last Updated: 2025-09-06 - This file preserves Claude's working context for the Cartographer project*
