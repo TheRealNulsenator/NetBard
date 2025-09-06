@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <map>
 #include <winsock2.h>
 #include <windows.h>
 
@@ -13,16 +14,20 @@ public:
     bool pingHost(const std::string& address, HANDLE icmp_handle);
     bool handleCommand(const std::vector<std::string>& arguments);
 
+    std::string Network_Address;
+    std::string Broadcast_Address;
+    std:: string Network_Mask;
+    std::vector<std::string> Host_Addresses;
+    std::map<std::string, bool> Host_Statuses;
+
 private:
 
-    std::string subnet_cidr;
-    std::vector<std::string> subnet_hosts;
+    std::vector<std::string> hosts;
 
-    bool find_hosts(const std::string& cidr);
+    bool find_hosts();
     bool unwrap_cidr(const std::string& cidr, std::vector<std::string>& results);
     bool address_to_bits(const std::vector<std::string>& octets, uint32_t& ip);
     bool create_subnet_mask(const std::string& subnet_mask, uint32_t& results);
-    std::vector<uint32_t> create_address_range(const uint32_t ip, const uint32_t mask);
     std::string bits_to_address(const uint32_t ip);
 };
 
