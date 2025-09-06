@@ -3,12 +3,11 @@
 #include <iostream>
 #include <algorithm>
 #include <bitset>
-#include <cstdint>
 #include <sstream>
-#include <iomanip>
 #include <thread>
 #include <mutex>
-#include <semaphore>
+#include <chrono>
+#include <winsock2.h>
 #include <iphlpapi.h>
 #include <icmpapi.h>
 
@@ -31,12 +30,12 @@ bool SubnetScanner::handleCommand(const std::vector<std::string>& arguments) {
     return true;
 }
 
-const bool SubnetScanner::find_hosts(const std::string cidr)
+bool SubnetScanner::find_hosts(const std::string& cidr)
 {
     subnet_cidr = cidr;  // Store the CIDR for later use
     subnet_hosts.clear();  // Clear previous scan results
 
-    std::cout << "scanning subnet " << subnet_cidr << " for hosts..." << std::endl;
+    std::cout << "Scanning subnet " << subnet_cidr << " for hosts..." << std::endl;
     std::vector<std::string> cidr_parts; //stores individual parts of subnet
     if (!unwrap_cidr(cidr, cidr_parts)) { std::cout << "Invalid CIDR (#.#.#.#/#)" << std::endl; return false;} 
    
@@ -56,7 +55,7 @@ const bool SubnetScanner::find_hosts(const std::string cidr)
 
 
     const auto MAX_THREADS = 100; //max concurrent pings
-    const auto MS_BETWEEN_PINGS = 10; //delay between pings
+    const auto MS_BETWEEN_THREAD_SPAWNS = 50; //delay between thread spawns to protect old PLCs
 
     std::cout << "\nScanning hosts..." << std::endl;
     std::vector<std::thread> threads;
@@ -82,7 +81,7 @@ const bool SubnetScanner::find_hosts(const std::string cidr)
                 
         }, icmp_handle);
         // Delay how quickly we spin up threads to avoid faulting old PLC processors with ping storm
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(MS_BETWEEN_THREAD_SPAWNS));
     }
         
     // Wait for remaining threads
@@ -100,7 +99,7 @@ const bool SubnetScanner::find_hosts(const std::string cidr)
 }
 
 
-const bool SubnetScanner::unwrap_cidr(const std::string cidr, std::vector<std::string>& results)
+bool SubnetScanner::unwrap_cidr(const std::string& cidr, std::vector<std::string>& results)
 {
     results.clear();
     const std::string delimiters = "./\\";
@@ -120,25 +119,31 @@ const bool SubnetScanner::unwrap_cidr(const std::string cidr, std::vector<std::s
         results.push_back(cidr.substr(start));
     }
 
-    const bool valid_octet_count = std::count(cidr.begin(), cidr.end(), '.') == 3;
+    const int EXPECTED_DOTS = 3;
+    const bool valid_octet_count = std::count(cidr.begin(), cidr.end(), '.') == EXPECTED_DOTS;
     const bool valid_mask_count = std::count(cidr.begin(), cidr.end(), '/') == 1 || std::count(cidr.begin(), cidr.end(), '\\') == 1;
-    const bool valid_token_count = results.size() == 5;
+    const size_t EXPECTED_TOKENS = 5;  // 4 octets + 1 mask
+    const bool valid_token_count = results.size() == EXPECTED_TOKENS;
     //check for 4 total octets, and check for subnet with either forward or backslash
     return valid_octet_count && valid_mask_count && valid_token_count;
 }
 
 
-const bool SubnetScanner::address_to_bits(const std::vector<std::string> octets, uint32_t& ip)
+bool SubnetScanner::address_to_bits(const std::vector<std::string>& octets, uint32_t& ip)
 {    
     ip = 0;  // Initialize the output parameter
     try {
 
-        for (int i = 0; i < 4; i++) { //4 octets in a valid subnet. ignore anything else, like a dangling subnet mask
+        const int IPV4_OCTETS = 4;
+        for (int i = 0; i < IPV4_OCTETS; i++) { //octets in a valid subnet. ignore anything else, like a dangling subnet mask
             int octet = std::stoi(octets[i]);
 
-            if (octet < 0 || octet > 255) return false;  // Invalid octet range
+            const int MIN_OCTET = 0;
+            const int MAX_OCTET = 255;
+            if (octet < MIN_OCTET || octet > MAX_OCTET) return false;  // Invalid octet range
 
-            const uint8_t offset = (24 - (i * 8));
+            const uint8_t BITS_PER_OCTET = 8;
+            const uint8_t offset = (24 - (i * BITS_PER_OCTET));
             ip |= (octet << offset);
         }
         return true;  // Success
@@ -150,7 +155,7 @@ const bool SubnetScanner::address_to_bits(const std::vector<std::string> octets,
 }
 
 
-const std::string SubnetScanner::bits_to_address(const uint32_t ip)
+std::string SubnetScanner::bits_to_address(const uint32_t ip)
 {
     std::stringstream ss;
     ss << ((ip >> 24) & 0xFF) << "."
@@ -161,12 +166,14 @@ const std::string SubnetScanner::bits_to_address(const uint32_t ip)
 }
 
 
-const bool SubnetScanner::create_subnet_mask(const std::string subnet_mask, uint32_t& results) {
+bool SubnetScanner::create_subnet_mask(const std::string& subnet_mask, uint32_t& results) {
     int bits;
     try { bits = std::stoi(subnet_mask);} //perform string to int conversion
     catch(const std:: exception& e){ return false;}
 
-    if (bits < 0 || bits > 32) return false;    // Invalid input
+    const int MIN_SUBNET_BITS = 0;
+    const int MAX_SUBNET_BITS = 32;
+    if (bits < MIN_SUBNET_BITS || bits > MAX_SUBNET_BITS) return false;    // Invalid input
     else if (bits == 0) results = 0;              // All zeros
     else if (bits == 32) results = 0xFFFFFFFF;    // All ones
     else results = 0xFFFFFFFF << (32 - bits);   // no edge case, perform normal conversion
@@ -175,7 +182,7 @@ const bool SubnetScanner::create_subnet_mask(const std::string subnet_mask, uint
 }
 
 
-const std::vector<uint32_t> SubnetScanner::create_address_range(const uint32_t ip, const uint32_t mask)
+std::vector<uint32_t> SubnetScanner::create_address_range(const uint32_t ip, const uint32_t mask)
 {
 
     const uint32_t network_address = ip & mask;
@@ -190,7 +197,7 @@ const std::vector<uint32_t> SubnetScanner::create_address_range(const uint32_t i
         addresses.push_back(address);
     }
 
-    std::cout << "Unique Addresses: " << addresses.size() << std::endl;
+    std::cout << "Unique addresses: " << addresses.size() << std::endl;
 
     return addresses;
 }
@@ -198,11 +205,11 @@ const std::vector<uint32_t> SubnetScanner::create_address_range(const uint32_t i
 
 bool SubnetScanner::pingHost(const std::string& address, HANDLE icmp_handle)
 {
-    const int PING_TIMEOUT_MS = 500; 
-    const int MAX_TRIES = 4;
+    const int PING_TIMEOUT_MS = 500;
+    const int MAX_PING_ATTEMPTS = 4;
     auto ping_attempts = 0;
 
-    while (ping_attempts < MAX_TRIES){
+    while (ping_attempts < MAX_PING_ATTEMPTS){
         ping_attempts++;
 
         // Convert string IP to network address
@@ -250,5 +257,4 @@ bool SubnetScanner::pingHost(const std::string& address, HANDLE icmp_handle)
     }
     IcmpCloseHandle(icmp_handle);
     return false;
-    
 }

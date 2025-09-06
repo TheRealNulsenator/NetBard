@@ -189,6 +189,7 @@ cartographer/
    - Add required includes for types (e.g., `<cstdint>` for uint32_t)
    - Header files should only include what they directly need
    - Implementation files should not re-include what's in their header
+   - **Windows headers**: ALWAYS include `<winsock2.h>` before `<windows.h>` to avoid conflicts
 
 3. **Naming Consistency**
    - Private member variables: check for m_ prefix or snake_case consistency
@@ -211,6 +212,7 @@ cartographer/
    - Mark methods const where appropriate
    - Use const parameters where values shouldn't change
    - Check return types for unnecessary const on primitives
+   - **Pass by const reference**: Convert `const std::string` and `const std::vector` parameters to `const&` to avoid copies
 
 7. **Error Messages**
    - Ensure all error messages are clear and consistent
@@ -219,6 +221,11 @@ cartographer/
 8. **Magic Numbers**
    - Replace any remaining magic numbers with named constants
    - Document any non-obvious constant values
+
+9. **Parameter Optimization**
+   - Pass objects (string, vector, custom classes) by const reference instead of value
+   - Keep primitives (int, uint32_t, bool, char) as pass-by-value
+   - Check for unnecessary copying in function parameters
 
 ### Quick Checks:
 - Run build to ensure no warnings

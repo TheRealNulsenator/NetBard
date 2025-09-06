@@ -39,6 +39,14 @@
 - **Resource management**: Always clean up handles/resources in reverse order of acquisition
 - **Performance**: Pass handles/resources as parameters when reusable across iterations
 
+## Parameter Passing Guidelines
+- **Pass by const reference**: For objects (std::string, std::vector, custom classes)
+  - Example: `void process(const std::string& name)` not `void process(const std::string name)`
+- **Pass by value**: For primitives (int, bool, char, pointers, uint32_t)
+  - Example: `void setFlag(bool enabled)` is fine
+- **Why it matters**: Copying strings/vectors is expensive; copying 4-byte ints is cheap
+- **Rule of thumb**: If sizeof(type) > sizeof(pointer), use const reference
+
 ## Comments
 - Use // for single-line comments
 - Place comments above the code they describe
@@ -60,6 +68,9 @@
   - System headers
   - Project headers
   - Alphabetical within each group
+- **Windows-specific**: 
+  - MUST include `<winsock2.h>` before `<windows.h>`
+  - windows.h includes old winsock.h which conflicts with winsock2.h
 
 ## Refactoring Patterns
 - **Reduce nesting**: Use guard clauses to handle edge cases first
