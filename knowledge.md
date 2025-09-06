@@ -72,16 +72,23 @@ cartographer/
   - Converts IP addresses to binary representation (uint32_t)
   - Creates subnet masks from CIDR notation
   - Generates address ranges for scanning
-  - **Ping implementation**: Windows ICMP API (multithreaded)
+  - Refactored architecture: Separated CIDR parsing from scanning logic
+  - **Ping implementation**: Windows ICMP API (work-stealing thread pool)
     - Uses IcmpSendEcho for host discovery
-    - **Threading model**: One thread per IP address
-    - Each thread gets its own ICMP handle (thread safety)
-    - Retry logic: 4 attempts per host, 500ms timeout each
+    - **Threading model**: Work-stealing thread pool pattern
+      - Fixed pool of 100 threads created upfront
+      - Atomic index for work distribution (`fetch_add` for thread safety)
+      - Each thread pulls work until queue empty
+      - ICMP handle created inside each thread (avoids reference capture issue)
+    - Retry logic: 3 attempts per host, 500ms timeout each
     - WSAStartup called once for entire scan
-    - Mutex protection for console output and subnet_hosts vector
+    - Mutex protection for console output and Host_Statuses map
     - Uses emplace_back to avoid thread copy construction
-    - 50ms delay between thread spawns (protect old PLCs)
-    - **Planned**: Custom semaphore for thread limiting (MAX_THREADS=100)
+    - 5ms delay between thread spawns (reduced from 25ms)
+  - **Data structures**:
+    - `Host_Addresses`: Vector of all IPs to scan
+    - `Host_Statuses`: Map tracking ping results (address -> bool)
+    - Public members for network info access
   - Has handleCommand() method for CommandDispatcher integration
   - Command: `scan <cidr>` (e.g., scan 192.168.1.0/24)
   - Requires linking: -lws2_32 -liphlpapi
@@ -167,7 +174,10 @@ cartographer/
   - Multithreaded scanning implementation
   - Fixed memory leak in ping retry logic
   - Fixed ICMP handle thread safety issues
-- Current: Implementing custom semaphore for thread limiting
+- ✅ Work-stealing thread pool implementation (2025-09-06)
+  - Refactored from one-thread-per-IP to fixed thread pool
+  - Implemented atomic work distribution
+  - Fixed race conditions and output bugs
 
 ## Critical Notes
 - **Must maintain documentation**: User explicitly requires updating knowledge.md, code-style.md, and project-log.md throughout work

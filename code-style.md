@@ -79,12 +79,31 @@
 
 ## Threading Patterns
 - **Thread creation**: Use `emplace_back` to avoid copy construction
-- **Lambda captures**: `[&, capture_by_value]` for thread lambdas
+- **Lambda captures**: 
+  - `[&]` for reference capture when threads need shared state
+  - Be careful: Don't capture loop variables by reference in thread creation loops
+  - Create resources inside lambda to avoid reference capture issues
 - **Mutex usage**: Always use `lock_guard` for RAII-style locking
 - **Critical sections**: Minimize scope of mutex locks
-- **Resource per thread**: Create thread-local resources (e.g., ICMP handles) for thread safety
+- **Resource per thread**: Create thread-local resources (e.g., ICMP handles) inside thread lambda
 - **Thread joining**: Always join threads before function exit
 - **Shared data protection**: Use mutex for any shared data structure modifications
+
+## Work-Stealing Thread Pool Pattern
+- **Fixed thread pool**: Create all threads upfront, not one per task
+- **Atomic work distribution**: Use `std::atomic<int>` with `fetch_add` for thread-safe indexing
+- **Work loop**: Each thread loops until no work remains
+  ```cpp
+  while (true) {
+      int index = work_index.fetch_add(1);
+      if (index >= work_items.size()) break;
+      // process work_items[index]
+  }
+  ```
+- **Benefits**: No thread creation overhead, automatic load balancing, controlled concurrency
+- **Gotchas**: 
+  - Don't read-then-increment atomics (race condition)
+  - Create handles/resources inside thread, not outside
 
 ## Example
 ```cpp

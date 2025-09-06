@@ -159,9 +159,36 @@ This refactor demonstrates the value of systematic cleanup processes and the imp
   - Comments explaining edge cases and logic
   - Resource management: proper cleanup of Windows handles
 
-- **Next Steps**:
-  - Implement custom semaphore for thread limiting (MAX_THREADS=100)
-  - Consider C++20 `std::counting_semaphore` when available
+#### Work-Stealing Thread Pool Implementation (2025-09-06)
+- **User-driven design decision**: Implement work-stealing thread pool pattern
+- **Motivation**: 
+  - Previous approach spawned one thread per IP (inefficient)
+  - Thread creation/destruction overhead
+  - No actual thread limiting despite MAX_THREADS constant
+- **Implementation**:
+  - Fixed pool of 100 threads created upfront
+  - Atomic index (`std::atomic<int>`) for work distribution
+  - Threads use `fetch_add` to atomically get next work item
+  - Each thread loops until work queue exhausted
+  - ICMP handle created inside thread lambda (avoids reference capture issues)
+- **Architecture changes**:
+  - Separated CIDR parsing logic into `handleCommand`
+  - `find_hosts()` now parameterless, works on member variables
+  - Added public members: `Host_Addresses`, `Host_Statuses` map, network info
+- **Bug fixes during implementation**:
+  1. **Race condition**: Initial implementation read index then incremented (not atomic)
+     - Fixed: Use `fetch_add` to atomically get-and-increment
+  2. **Output bug**: Printed "is alive" for all addresses
+     - Fixed: Only print if `pingable == true`
+  3. **ICMP handle sharing**: Reference capture would share handle across threads
+     - Fixed: Create handle inside lambda
+  4. **Scan summary**: Showed total scanned, not alive count
+     - Fixed: Count only alive hosts from map
+- **Performance improvements**:
+  - Thread spawn delay reduced from 25ms to 10ms (later to 5ms)
+  - No per-IP thread overhead
+  - Better CPU utilization (threads stay busy)
+  - Load balancing (fast threads automatically take more work)
 
 - **Cleanup performed**:
   - Fixed header guard from `SUBNET_PINGER_H` to `SUBNET_SCANNER_H`
@@ -317,4 +344,4 @@ This refactor demonstrates the value of systematic cleanup processes and the imp
 
 ---
 
-*Last Updated: 2025-09-06 - Major cleanup refactor completed*
+*Last Updated: 2025-09-06 - Work-stealing thread pool implementation completed*

@@ -74,7 +74,7 @@ bool SubnetScanner::find_hosts()
     std::mutex output_mutex; //dont try to all talk at once
 
     const auto MAX_THREADS = 100; //max concurrent pinging threads
-    const auto MS_BETWEEN_THREAD_SPAWNS = 25; //delay between thread spawns to protect old PLCs from broadcast storms
+    const auto MS_BETWEEN_THREAD_SPAWNS = 10; //small delay between thread spawns to protect old PLCs
     for (int i = 0; i < MAX_THREADS; i++) { //spawn all of our threads!
 
         //uses emplace_back to avoid attempting thread copy operation
@@ -88,13 +88,17 @@ bool SubnetScanner::find_hosts()
             } 
 
             //keep pinging addresses until we have gotten them all
-            while (index_of_next_address_to_ping < Host_Addresses.size()){ 
-                std::string address = Host_Addresses[index_of_next_address_to_ping];
-                index_of_next_address_to_ping++; //ATOMIC addition, will wait for other threads, and block others while it accesses
+            while (true) { 
+                int my_index = index_of_next_address_to_ping.fetch_add(1); //ATOMIC fetch and increment
+                if (my_index >= Host_Addresses.size()) break; //no more work
+                
+                std::string address = Host_Addresses[my_index];
                 bool pingable = pingHost(address, icmp_handle);
                 {   //CRITICAL SECTION that can block other threads from accessing this while we write
-                    std::lock_guard<std::mutex> lock(output_mutex); 
-                    std::cout << address << " is alive" << std::endl;
+                    std::lock_guard<std::mutex> lock(output_mutex);
+                    if (pingable) {
+                        std::cout << address << " is alive" << std::endl;
+                    }
                     Host_Statuses[address] = pingable;   
                 }  
             }
@@ -110,9 +114,16 @@ bool SubnetScanner::find_hosts()
         thread.join();
     }
 
-    // clean up ICMP handle and Winsock
+    // clean up Winsock
     WSACleanup();
-    std::cout << "\nScan complete. Found " << Host_Statuses.size() << " alive hosts." << std::endl;
+    
+    // Count alive hosts
+    int alive_count = 0;
+    for (const auto& [address, is_alive] : Host_Statuses) {
+        if (is_alive) alive_count++;
+    }
+    
+    std::cout << "\nScan complete. Found " << alive_count << " alive hosts out of " << Host_Addresses.size() << " scanned." << std::endl;
     
     return true;
 }
