@@ -1,4 +1,4 @@
-#include "SSHConnection.h"
+#include "SecureShell.h"
 #include <iostream>
 #include <ws2tcpip.h>
 #include <winsock2.h>
@@ -6,7 +6,7 @@
 #include <thread>
 #include <chrono>
 
-const std::vector<std::string> SSHConnection::DISCOVERY_COMMANDS = {
+const std::vector<std::string> SecureShell::DISCOVERY_COMMANDS = {
     "terminal length 0",                        // Return full output of all subsequent commands without dialogue
     "show version",                            // Device model, IOS version, uptime
     "show ip interface brief",                 // All interfaces with IP addresses
@@ -20,24 +20,24 @@ const std::vector<std::string> SSHConnection::DISCOVERY_COMMANDS = {
     "show spanning-tree summary"               // STP overview
 };
 
-const std::vector<char> SSHConnection::PROMPT_ENDINGS = {'>', '#', '$', '%'};
+const std::vector<char> SecureShell::PROMPT_ENDINGS = {'>', '#', '$', '%'};
 
-SSHConnection::SSHConnection() : m_session(nullptr), m_socket(-1), m_connected(false) {
+SecureShell::SecureShell() : m_session(nullptr), m_socket(-1), m_connected(false) {
     // Initialize Winsock
     WSADATA wsadata;
     WSAStartup(MAKEWORD(2, 0), &wsadata);
     
-    // Initialize libssh2
+    // Initialize libssh2 
     libssh2_init(0);
 }
 
-SSHConnection::~SSHConnection() {
+SecureShell::~SecureShell() {
     disconnect();
     libssh2_exit();
     WSACleanup();
 }
 
-bool SSHConnection::connect(const std::string& hostname, const std::string& username, 
+bool SecureShell::connect(const std::string& hostname, const std::string& username, 
                            const std::string& password, int port) {
     // Create socket
     m_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -84,7 +84,7 @@ bool SSHConnection::connect(const std::string& hostname, const std::string& user
     return true;
 }
 
-std::string SSHConnection::execute(const std::string& command) {
+std::string SecureShell::execute(const std::string& command) {
     if (!m_connected) {
         return "Error: Not connected";
     }
@@ -114,12 +114,11 @@ std::string SSHConnection::execute(const std::string& command) {
     // Close and wait for remote to acknowledge
     libssh2_channel_close(channel);
     libssh2_channel_free(channel);
-    
 
     return result;
 }
 
-void SSHConnection::executeShell(const std::vector<std::string>& commands) {
+void SecureShell::executeShell(const std::vector<std::string>& commands) {
     if (!m_connected) {
         std::cout << "Error: Not connected" << std::endl;
         return;
@@ -149,7 +148,7 @@ void SSHConnection::executeShell(const std::vector<std::string>& commands) {
         libssh2_channel_write(channel, cmd.c_str(), cmd.length());
         output = waitShellPrompt(channel, buffer);
         
-        std::cout << output << std::endl;
+        std::cout << output;
     }
     
     // Close channel
@@ -157,15 +156,14 @@ void SSHConnection::executeShell(const std::vector<std::string>& commands) {
     libssh2_channel_free(channel);
 }
 
-std::string SSHConnection::waitShellPrompt(LIBSSH2_CHANNEL* channel, char* buffer){
+std::string SecureShell::waitShellPrompt(LIBSSH2_CHANNEL* channel, char* buffer){
 
     // Read until we haven't received data for a short period
     std::string output;
     int bytesRead;
     int emptyReads = 0;
-    const int MAX_EMPTY_READS = 10; 
-    const int CHECK_INTERVAL_MS = 100;
-    //total timeout = MAX_EMPTY_READS * CHECK_INTERVAL_MS
+    const int MAX_EMPTY_READS = 25; 
+    const int CHECK_INTERVAL_MS = 50;
     
     while (emptyReads < MAX_EMPTY_READS) {
         bytesRead = libssh2_channel_read(channel, buffer, sizeof(buffer)-1);
@@ -206,7 +204,7 @@ std::string SSHConnection::waitShellPrompt(LIBSSH2_CHANNEL* channel, char* buffe
         return output;
 }
 
-void SSHConnection::disconnect() {
+void SecureShell::disconnect() {
     if (m_connected && m_session) {
         libssh2_session_disconnect(m_session, "Normal disconnect");
         libssh2_session_free(m_session);
@@ -216,7 +214,7 @@ void SSHConnection::disconnect() {
     }
 }
 
-bool SSHConnection::handleCommand(const std::vector<std::string>& arguments) {
+bool SecureShell::handleCommand(const std::vector<std::string>& arguments) {
     if (arguments.size() < 3) {
         std::cout << "Usage: ssh <hostname> <username> <password>" << std::endl;
         return true;

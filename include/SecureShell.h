@@ -1,5 +1,5 @@
-#ifndef SSH_CONNECTION_H
-#define SSH_CONNECTION_H
+#ifndef SECURE_SHELL_H
+#define SECURE_SHELL_H
 
 #include <string>
 #include <vector>
@@ -8,10 +8,10 @@
 typedef struct _LIBSSH2_SESSION LIBSSH2_SESSION;
 typedef struct _LIBSSH2_CHANNEL LIBSSH2_CHANNEL;
 
-class SSHConnection {
+class SecureShell {
 public:
-    SSHConnection();
-    ~SSHConnection();
+    SecureShell();
+    ~SecureShell();
     
     // Simple connect and execute
     bool connect(const std::string& hostname, const std::string& username, const std::string& password, int port = 22);

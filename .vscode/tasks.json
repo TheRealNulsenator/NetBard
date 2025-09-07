@@ -12,7 +12,7 @@
                 "main.cpp",
                 "src\\CommandDispatcher.cpp",
                 "src\\InputHandler.cpp",
-                "src\\SSHConnection.cpp",
+                "src\\SecureShell.cpp",
                 "src\\SubnetScanner.cpp",
                 "-lssh2",
                 "-lws2_32",

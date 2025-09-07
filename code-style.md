@@ -105,6 +105,31 @@
   - Don't read-then-increment atomics (race condition)
   - Create handles/resources inside thread, not outside
 
+## Singleton Pattern
+- **Use case**: Classes that should have only one instance (InputHandler, CommandDispatcher)
+- **Implementation**: Lazy initialization with static local variable (thread-safe since C++11)
+- **Pattern**:
+  ```cpp
+  class Singleton {
+  public:
+      static Singleton& getInstance() {
+          static Singleton instance;  // Thread-safe lazy init
+          return instance;
+      }
+  private:
+      Singleton();  // Private constructor
+      ~Singleton();  // Private destructor (optional)
+      Singleton(const Singleton&) = delete;  // No copy
+      Singleton& operator=(const Singleton&) = delete;  // No assign
+  };
+  ```
+- **Usage**: `Singleton& instance = Singleton::getInstance();`
+- **Benefits**: 
+  - Guaranteed single instance
+  - Thread-safe initialization
+  - No manual lifecycle management
+  - Global access point
+
 ## Example
 ```cpp
 const int MAX_CONNECTIONS = 100;
@@ -131,4 +156,21 @@ void processData(int value) {
     // Main logic here, not nested
     performOperation(value);
 }
+
+// Singleton example
+class InputHandler {
+public:
+    static InputHandler& getInstance() {
+        static InputHandler instance;
+        return instance;
+    }
+    
+    bool hasCommand();
+    std::string getCommand();
+    
+private:
+    InputHandler();  // Private constructor
+    InputHandler(const InputHandler&) = delete;
+    InputHandler& operator=(const InputHandler&) = delete;
+};
 ```

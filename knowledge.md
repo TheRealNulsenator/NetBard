@@ -38,12 +38,12 @@ cartographer/
 ├── include/
 │   ├── CommandDispatcher.h
 │   ├── InputHandler.h
-│   ├── SSHConnection.h
+│   ├── SecureShell.h
 │   └── SubnetScanner.h
 ├── src/
 │   ├── CommandDispatcher.cpp
 │   ├── InputHandler.cpp
-│   ├── SSHConnection.cpp
+│   ├── SecureShell.cpp
 │   └── SubnetScanner.cpp
 ├── knowledge.md (this file - LLM context)
 ├── code-style.md (C++ style guide)
@@ -52,15 +52,21 @@ cartographer/
 
 ### Architecture
 - **main.cpp**: Creates all components, registers command handlers, runs main loop
-  - Owns SSHConnection, InputHandler, CommandDispatcher, SubnetScanner
+  - Gets singleton instances of InputHandler and CommandDispatcher
+  - Creates SecureShell and SubnetScanner objects
   - Registers commands using std::bind for cleaner code
-- **CommandDispatcher**: Dispatcher with built-in help/quit/exit
+- **CommandDispatcher**: Singleton dispatcher with built-in help/quit/exit
+  - Singleton pattern: Lazy initialization, thread-safe since C++11
+  - Access via `CommandDispatcher::getInstance()`
   - All commands use uniform interface: `bool(const std::vector<std::string>&)`
   - Splits input into words, removes command name, passes arguments to handlers
   - Self-registers help/quit/exit as fundamental commands
   - Help command auto-lists all registered commands with tips
-- **InputHandler**: Thread-safe command input system (queue-based)
-- **SSHConnection**: Barebones libssh2 implementation
+- **InputHandler**: Singleton thread-safe command input system (queue-based)
+  - Singleton pattern: Lazy initialization, thread-safe since C++11
+  - Access via `InputHandler::getInstance()`
+  - Private constructor, deleted copy constructor/assignment operator
+- **SecureShell** (formerly SSHConnection): Barebones libssh2 implementation
   - Direct libssh2 API usage (no ssh.exe)
   - Password authentication only
   - Simple connect/execute/disconnect model
@@ -111,8 +117,13 @@ cartographer/
 
 ### Important Functions/Classes
 - **InputHandler**: Fire-and-forget detached thread, runs for process lifetime
+  - Singleton instance accessed via `getInstance()`
   - No explicit lifecycle management needed
   - Leverages OS process cleanup
+  - Private constructor prevents direct instantiation
+- **CommandDispatcher**: Central command routing system
+  - Singleton instance accessed via `getInstance()`
+  - Manages command registration and execution
 
 ## User Preferences & Patterns
 - **KISS principle** - Don't add code for future scenarios
@@ -178,6 +189,10 @@ cartographer/
   - Refactored from one-thread-per-IP to fixed thread pool
   - Implemented atomic work distribution
   - Fixed race conditions and output bugs
+- ✅ Singleton pattern implementation (2025-09-07)
+  - Converted InputHandler and CommandDispatcher to singletons
+  - Using lazy initialization pattern (thread-safe since C++11)
+  - Prevents multiple instances and improves global access
 
 ## Critical Notes
 - **Must maintain documentation**: User explicitly requires updating knowledge.md, code-style.md, and project-log.md throughout work

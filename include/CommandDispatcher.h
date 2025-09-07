@@ -10,12 +10,17 @@ class CommandDispatcher {
 public:
     CommandDispatcher();
     
-    // Process a command and return false if program should exit
-    bool processCommand(const std::string& command);
+    bool processCommand(const std::string& command);    // Process a command and return false if program should exit
     
     // Register a command handler (all handlers take vector of arguments)
     using CommandHandler = std::function<bool(const std::vector<std::string>&)>;
     void registerCommand(const std::string& name, CommandHandler handler, const std::string& tip ="");
+
+    // Static method to get the single instance
+    static CommandDispatcher& getInstance() {
+        static CommandDispatcher instance; // Lazily initialized, thread-safe since C++11
+        return instance;
+    }
     
 private:
 
@@ -25,6 +30,10 @@ private:
     void initializeBuiltInCommands();
     bool handleHelp(const std::vector<std::string>& arguments);
     std::vector<std::string> splitCommand(const std::string& command);
+
+    // Delete copy constructor and assignment operator to prevent copying
+    CommandDispatcher(const CommandDispatcher&) = delete;
+    CommandDispatcher& operator=(const CommandDispatcher&) = delete;
 };
 
 #endif // COMMAND_DISPATCHER_H

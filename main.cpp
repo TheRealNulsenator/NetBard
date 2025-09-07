@@ -4,7 +4,7 @@
 #include <functional>
 #include "InputHandler.h"
 #include "CommandDispatcher.h"
-#include "SSHConnection.h"
+#include "SecureShell.h"
 #include "SubnetScanner.h"
 
 const int MAIN_LOOP_DELAY_MS = 10;
@@ -18,14 +18,14 @@ int main() {
     std::cout.flush();
     
     // Initialize major components
-    InputHandler inputHandler;  // Starts collecting input immediately
-    CommandDispatcher commandDispatcher; // Register callbacks to this
-    SSHConnection sshConnection;
+    InputHandler& inputHandler = InputHandler::getInstance();  // Starts collecting input immediately
+    CommandDispatcher& commandDispatcher = CommandDispatcher::getInstance(); // procedurally routes user input to subscribers
+    SecureShell secureShell;
     SubnetScanner subnetScanner;
     
     // Register SSH command using std::bind
     commandDispatcher.registerCommand("ssh", 
-        std::bind(&SSHConnection::handleCommand, &sshConnection, std::placeholders::_1),
+        std::bind(&SecureShell::handleCommand, &secureShell, std::placeholders::_1),
         "Test SSH connection to a host");
 
     commandDispatcher.registerCommand("scan", 

@@ -7,9 +7,6 @@ InputHandler::InputHandler() {
     m_inputThread.detach();  // Fire and forget
 }
 
-InputHandler::~InputHandler() {
-    // Don't even bother with stop() - just let process termination handle it
-}
 
 void InputHandler::inputLoop() {
     std::string input;

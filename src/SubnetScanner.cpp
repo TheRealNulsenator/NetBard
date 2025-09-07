@@ -123,7 +123,7 @@ bool SubnetScanner::find_hosts()
         if (is_alive) alive_count++;
     }
     
-    std::cout << "\nScan complete. Found " << alive_count << " alive hosts out of " << Host_Addresses.size() << " scanned." << std::endl;
+    std::cout << "Scan complete. Found " << alive_count << " alive hosts out of " << Host_Addresses.size() << " scanned." << std::endl;
     
     return true;
 }
@@ -211,8 +211,8 @@ bool SubnetScanner::create_subnet_mask(const std::string& subnet_mask, uint32_t&
 
 bool SubnetScanner::pingHost(const std::string& address, HANDLE icmp_handle)
 {
-    const int PING_TIMEOUT_MS = 500;
-    const int MAX_PING_ATTEMPTS = 3;
+    const int PING_TIMEOUT_MS = 2000;
+    const int MAX_PING_ATTEMPTS = 2;
     auto ping_attempts = 0;
 
     while (ping_attempts < MAX_PING_ATTEMPTS){

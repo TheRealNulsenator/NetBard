@@ -42,6 +42,7 @@
 - **Final decision**: Direct libssh2 implementation
 - **Rationale**: Full control over crypto, supports legacy devices
 - **Implementation**: Barebones - just connect/execute/disconnect
+- **2025-09-06 Update**: Renamed SSHConnection to SecureShell for clarity
 - **Trade-offs**: 
   - Pros: Works with legacy devices, no system config needed
   - Cons: Requires libssh2 dependency
@@ -158,6 +159,43 @@ This refactor demonstrates the value of systematic cleanup processes and the imp
   - Descriptive variable names (e.g., `valid_octet_count`, `valid_mask_count`)
   - Comments explaining edge cases and logic
   - Resource management: proper cleanup of Windows handles
+
+### 2025-09-06: Class Naming Refactor
+- **Change**: Renamed SSHConnection to SecureShell
+- **Rationale**: More descriptive and professional naming
+- **Scope**: 
+  - Renamed files: SSHConnection.h/cpp → SecureShell.h/cpp
+  - Updated all references in main.cpp
+  - Updated tasks.json build configuration
+  - Updated all documentation
+- **Impact**: Better code clarity, no functional changes
+
+### 2025-09-07: Singleton Pattern Implementation
+- **Change**: Converted InputHandler and CommandDispatcher to singleton pattern
+- **Rationale**: 
+  - Ensures single instance throughout application lifetime
+  - Provides global access point for command handling
+  - Prevents accidental multiple instantiation
+- **Implementation**:
+  - Lazy initialization pattern (thread-safe since C++11)
+  - Static `getInstance()` method returns reference to static instance
+  - Private constructors prevent direct instantiation
+  - Deleted copy constructor and assignment operator
+- **Code pattern**:
+  ```cpp
+  static ClassName& getInstance() {
+      static ClassName instance;  // Lazy init, thread-safe
+      return instance;
+  }
+  ```
+- **Usage change in main.cpp**:
+  - Before: `InputHandler inputHandler;`
+  - After: `InputHandler& inputHandler = InputHandler::getInstance();`
+- **Benefits**:
+  - Guarantees single instance
+  - Thread-safe initialization
+  - Clean global access pattern
+  - No manual lifecycle management needed
 
 #### Work-Stealing Thread Pool Implementation (2025-09-06)
 - **User-driven design decision**: Implement work-stealing thread pool pattern
