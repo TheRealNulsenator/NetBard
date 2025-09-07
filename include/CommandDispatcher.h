@@ -8,30 +8,28 @@
 
 class CommandDispatcher {
 public:
-    CommandDispatcher();
-    
-    bool processCommand(const std::string& command);    // Process a command and return false if program should exit
+    // Static interface - no instances needed
+    static void initialize();    // Initialize built-in commands
+    static bool processCommand(const std::string& command);    // Process a command and return false if program should exit
     
     // Register a command handler (all handlers take vector of arguments)
     using CommandHandler = std::function<bool(const std::vector<std::string>&)>;
-    void registerCommand(const std::string& name, CommandHandler handler, const std::string& tip ="");
+    static void registerCommand(const std::string& name, CommandHandler handler, const std::string& tip ="");
 
-    // Static method to get the single instance
-    static CommandDispatcher& getInstance() {
-        static CommandDispatcher instance; // Lazily initialized, thread-safe since C++11
-        return instance;
-    }
-    
 private:
-
-    std::unordered_map<std::string, CommandHandler> m_commands;     // Map of command names to handler functions
-    std::unordered_map<std::string, std::string> m_tips;            // Map of command names to tips
+    // Static data members
+    static std::unordered_map<std::string, CommandHandler> s_commands;     // Map of command names to handler functions
+    static std::unordered_map<std::string, std::string> s_tips;            // Map of command names to tips
+    static bool s_initialized;
     
-    void initializeBuiltInCommands();
-    bool handleHelp(const std::vector<std::string>& arguments);
-    std::vector<std::string> splitCommand(const std::string& command);
+    // Static helper functions
+    static void initializeBuiltInCommands();
+    static bool handleHelp(const std::vector<std::string>& arguments);
+    static std::vector<std::string> splitCommand(const std::string& command);
 
-    // Delete copy constructor and assignment operator to prevent copying
+    // Prevent instantiation
+    CommandDispatcher() = delete;
+    ~CommandDispatcher() = delete;
     CommandDispatcher(const CommandDispatcher&) = delete;
     CommandDispatcher& operator=(const CommandDispatcher&) = delete;
 };

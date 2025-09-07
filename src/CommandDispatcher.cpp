@@ -2,13 +2,21 @@
 #include <iostream>
 #include <sstream>
 
-CommandDispatcher::CommandDispatcher() {
-    initializeBuiltInCommands();
+// Static member definitions
+std::unordered_map<std::string, CommandDispatcher::CommandHandler> CommandDispatcher::s_commands;
+std::unordered_map<std::string, std::string> CommandDispatcher::s_tips;
+bool CommandDispatcher::s_initialized = false;
+
+void CommandDispatcher::initialize() {
+    if (!s_initialized) {
+        initializeBuiltInCommands();
+        s_initialized = true;
+    }
 }
 
 void CommandDispatcher::initializeBuiltInCommands() {
     // Register built-in commands that are always available
-    registerCommand("help", [this](const std::vector<std::string>& args) {
+    registerCommand("help", [](const std::vector<std::string>& args) {
         return handleHelp(args);
     });
     
@@ -28,9 +36,9 @@ bool CommandDispatcher::handleHelp(const std::vector<std::string>& arguments) {
     std::cout << "  exit    -   Exit the program" << std::endl;
     
     // Show registered commands (excluding built-ins we just listed)
-    for (const auto& commandPair : m_commands) {
+    for (const auto& commandPair : s_commands) {
         const std::string& commandName = commandPair.first;
-        const std::string& tip = m_tips[commandName];
+        const std::string& tip = s_tips[commandName];
         if (commandName != "help" && commandName != "quit" && commandName != "exit") {
             std::cout << "  " << commandName << "   -   " << tip << std::endl;
         }
@@ -48,9 +56,9 @@ bool CommandDispatcher::processCommand(const std::string& command) {
     
     std::string commandName = commandParts[0];
     
-    auto commandHandlerIterator = m_commands.find(commandName);
+    auto commandHandlerIterator = s_commands.find(commandName);
     
-    if (commandHandlerIterator != m_commands.end()) {
+    if (commandHandlerIterator != s_commands.end()) {
         // Remove command name from arguments before passing to handler
         commandParts.erase(commandParts.begin());
         
@@ -65,8 +73,8 @@ bool CommandDispatcher::processCommand(const std::string& command) {
 }
 
 void CommandDispatcher::registerCommand(const std::string& name, CommandHandler handler, const std::string& tip) {
-    m_commands[name] = handler;
-    m_tips[name] = tip;
+    s_commands[name] = handler;
+    s_tips[name] = tip;
 }
 
 std::vector<std::string> CommandDispatcher::splitCommand(const std::string& command) {

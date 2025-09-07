@@ -19,16 +19,16 @@ int main() {
     
     // Initialize major components
     InputHandler& inputHandler = InputHandler::getInstance();  // Starts collecting input immediately
-    CommandDispatcher& commandDispatcher = CommandDispatcher::getInstance(); // procedurally routes user input to subscribers
+    CommandDispatcher::initialize();  // Initialize built-in commands
     SecureShell secureShell;
     SubnetScanner subnetScanner;
     
     // Register SSH command using std::bind
-    commandDispatcher.registerCommand("ssh", 
+    CommandDispatcher::registerCommand("ssh", 
         std::bind(&SecureShell::handleCommand, &secureShell, std::placeholders::_1),
         "Test SSH connection to a host");
 
-    commandDispatcher.registerCommand("scan", 
+    CommandDispatcher::registerCommand("scan", 
         std::bind(&SubnetScanner::handleCommand, &subnetScanner, std::placeholders::_1),
         "search for alive hosts in a subnet");
 
@@ -38,7 +38,7 @@ int main() {
 
         if (inputHandler.hasCommand()) {
             std::string command = inputHandler.getCommand();
-            running = commandDispatcher.processCommand(command);
+            running = CommandDispatcher::processCommand(command);
             std::cout << "> ";
             std::cout.flush();
         }

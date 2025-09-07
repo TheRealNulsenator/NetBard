@@ -55,9 +55,10 @@ cartographer/
   - Gets singleton instances of InputHandler and CommandDispatcher
   - Creates SecureShell and SubnetScanner objects
   - Registers commands using std::bind for cleaner code
-- **CommandDispatcher**: Singleton dispatcher with built-in help/quit/exit
-  - Singleton pattern: Lazy initialization, thread-safe since C++11
-  - Access via `CommandDispatcher::getInstance()`
+- **CommandDispatcher**: Static class dispatcher with built-in help/quit/exit
+  - Static class pattern: All methods and data are static, no instances
+  - Initialize with `CommandDispatcher::initialize()`
+  - Access methods directly: `CommandDispatcher::processCommand()`, `CommandDispatcher::registerCommand()`
   - All commands use uniform interface: `bool(const std::vector<std::string>&)`
   - Splits input into words, removes command name, passes arguments to handlers
   - Self-registers help/quit/exit as fundamental commands
@@ -122,7 +123,8 @@ cartographer/
   - Leverages OS process cleanup
   - Private constructor prevents direct instantiation
 - **CommandDispatcher**: Central command routing system
-  - Singleton instance accessed via `getInstance()`
+  - Static class - all methods accessed directly (no instances)
+  - Call `initialize()` once at startup
   - Manages command registration and execution
 
 ## User Preferences & Patterns
@@ -146,6 +148,7 @@ cartographer/
 - Makes own code formatting adjustments - observe and adapt
 - **Code style**: Self-documenting, verbose variable names over brevity
 - Prefers code that "flows naturally" - readable over dense
+- **IMPORTANT**: User does NOT want test builds - just write the code correctly
 
 ## User Background & Role
 - Industrial systems software engineer

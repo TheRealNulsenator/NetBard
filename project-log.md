@@ -171,10 +171,10 @@ This refactor demonstrates the value of systematic cleanup processes and the imp
 - **Impact**: Better code clarity, no functional changes
 
 ### 2025-09-07: Singleton Pattern Implementation
-- **Change**: Converted InputHandler and CommandDispatcher to singleton pattern
+- **Change**: Converted InputHandler to singleton pattern
 - **Rationale**: 
   - Ensures single instance throughout application lifetime
-  - Provides global access point for command handling
+  - Provides global access point for input handling
   - Prevents accidental multiple instantiation
 - **Implementation**:
   - Lazy initialization pattern (thread-safe since C++11)
@@ -191,11 +191,28 @@ This refactor demonstrates the value of systematic cleanup processes and the imp
 - **Usage change in main.cpp**:
   - Before: `InputHandler inputHandler;`
   - After: `InputHandler& inputHandler = InputHandler::getInstance();`
+
+### 2025-09-07: CommandDispatcher Static Class Refactor
+- **Change**: Converted CommandDispatcher from singleton to static class pattern
+- **Rationale**:
+  - CommandDispatcher has no instance-specific state
+  - All state is effectively global (command registry)
+  - Static class pattern is cleaner for stateless utilities
+  - Eliminates unnecessary instance management
+- **Implementation**:
+  - All methods and data members are static
+  - Deleted all constructors to prevent instantiation
+  - Added `initialize()` method for one-time setup
+  - Static maps for commands and tips (s_commands, s_tips)
+- **Usage change in main.cpp**:
+  - Before: `CommandDispatcher& commandDispatcher = CommandDispatcher::getInstance();`
+  - After: `CommandDispatcher::initialize();`
+  - Method calls: `commandDispatcher.processCommand()` → `CommandDispatcher::processCommand()`
 - **Benefits**:
-  - Guarantees single instance
-  - Thread-safe initialization
-  - Clean global access pattern
-  - No manual lifecycle management needed
+  - Clearer intent - this is a utility class, not an object
+  - No instance management overhead
+  - Direct static method calls
+  - Better matches actual usage pattern
 
 #### Work-Stealing Thread Pool Implementation (2025-09-06)
 - **User-driven design decision**: Implement work-stealing thread pool pattern
