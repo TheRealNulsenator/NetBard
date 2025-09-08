@@ -53,8 +53,15 @@ cartographer/
 ### Architecture
 - **main.cpp**: Creates all components, registers command handlers, runs main loop
   - Gets singleton instances of InputHandler and CommandDispatcher
-  - Creates SecureShell and SubnetScanner objects
+  - Gets singleton instance of SecureShell (via getInstance())
+  - Creates SubnetScanner object (not yet converted to vToolCommand pattern)
   - Registers commands using std::bind for cleaner code
+- **vToolCommand**: CRTP base template for tool commands
+  - Provides singleton pattern via getInstance()
+  - Auto-registers commands with CommandDispatcher on first use
+  - Uses static constexpr for command metadata (COMMAND_PHRASE, COMMAND_TIP)
+  - Virtual handleCommand() for runtime polymorphism
+  - Enforces design contract at compile time via template instantiation
 - **CommandDispatcher**: Static class dispatcher with built-in help/quit/exit
   - Static class pattern: All methods and data are static, no instances
   - Initialize with `CommandDispatcher::initialize()`
@@ -71,6 +78,8 @@ cartographer/
   - Direct libssh2 API usage (no ssh.exe)
   - Password authentication only
   - Simple connect/execute/disconnect model
+  - Inherits from vToolCommand<SecureShell> for singleton pattern
+  - Uses static constexpr for command metadata (COMMAND_PHRASE, COMMAND_TIP)
   - Has handleCommand() method for CommandDispatcher integration
   - Requires: libssh2 library
   - **Important**: Proper channel cleanup required between commands (send_eof, wait_eof, wait_closed)
@@ -175,6 +184,11 @@ cartographer/
 - User clarified this is for MY context, not documentation
 
 ## Ongoing Work
+- ✅ vToolCommand refactor for compile-time constants (2025-09-08)
+  - Removed virtual functions for getCommandPhrase() and getCommandTip()
+  - Changed to static constexpr members accessed via CRTP
+  - Reduces virtual function overhead for compile-time known values
+  - SecureShell converted to new pattern
 - ✅ SSH shell mode successfully implemented (2025-01-06)
   - Fixed "Failed to open channel" error by using shell mode
   - Refactored waitShellPrompt() using guard clauses

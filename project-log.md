@@ -399,4 +399,113 @@ This refactor demonstrates the value of systematic cleanup processes and the imp
 
 ---
 
-*Last Updated: 2025-09-06 - Work-stealing thread pool implementation completed*
+### 2025-01-08: vToolCommand Virtual Base Class Pattern
+- **Change**: Created template base class for tool commands with automatic singleton and registration
+- **Motivation**: Consolidate common patterns across all tool commands
+- **Design Goals**:
+  - Single place to define self-registration behavior
+  - Mandate singleton pattern for all tool commands
+  - Automatic command registration with CommandDispatcher
+  - Zero boilerplate in derived classes
+
+#### Initial Implementation Attempt
+- **Approach**: Register commands in base constructor using virtual function calls
+- **Problem**: C++ construction order - vtable not ready during base constructor
+- **Error**: Attempting to call virtual functions (`getCommandPhrase()`, `handleCommand()`) during base construction would call base versions (pure virtual = crash)
+- **Root cause**: Virtual dispatch mechanism isn't set up until after all constructors complete
+
+#### Solution: Two-Phase Initialization
+- **Pattern**: Lazy registration on first `getInstance()` call
+- **Implementation**:
+  ```cpp
+  static Derived& getInstance() {
+      static Derived instance;
+      static bool registered = false;
+      if (!registered) {
+          // Now safe to call virtual functions
+          CommandDispatcher::registerCommand(...);
+          registered = true;
+      }
+      return instance;
+  }
+  ```
+- **Benefits**:
+  - Object fully constructed before virtual calls
+  - Registration happens exactly once
+  - Clean, predictable behavior
+
+#### Lambda Capture Issue
+- **Problem**: Compiler warning about capturing static local variable by reference
+- **Warning**: "capture of variable 'instance' with non-automatic storage duration"
+- **Root cause**: Lambda was using `[&instance]` to capture a static variable
+- **Solution**: No capture needed - lambda calls `Derived::getInstance()` directly
+- **Trade-off**: Slightly more verbose but eliminates confusing capture semantics
+
+#### Design Trade-offs
+1. **CRTP (Curiously Recurring Template Pattern)**:
+   - **Pro**: Enables compile-time polymorphism for getInstance()
+   - **Pro**: Each derived class gets its own static instance
+   - **Con**: Template syntax can be confusing
+   - **Alternative considered**: Non-template base with virtual getInstance() - rejected due to inability to return derived type
+
+2. **Two-Phase Initialization**:
+   - **Pro**: Safe, reliable, works with virtual functions
+   - **Pro**: Clear separation between construction and registration
+   - **Con**: Slightly more complex than constructor registration
+   - **Alternative considered**: Static registration blocks - rejected due to static initialization order fiasco risks
+
+3. **Automatic Registration**:
+   - **Pro**: Zero boilerplate in derived classes
+   - **Pro**: Impossible to forget registration
+   - **Con**: Registration happens implicitly on first use
+   - **Alternative considered**: Explicit register() call - rejected to minimize developer error
+
+#### Migration Status
+- **Completed**: SecureShell converted to vToolCommand pattern
+- **Pending**: SubnetScanner still uses manual registration
+- **Usage in main.cpp**: 
+  - SecureShell: `SecureShell::getInstance()` triggers auto-registration
+  - SubnetScanner: Still uses `std::bind` with manual registration
+
+#### Lessons Learned
+- C++ virtual function mechanics are fundamental - can't be bypassed
+- Template metaprogramming (CRTP) solves some inheritance limitations
+- Lazy initialization is often the cleanest solution for complex initialization
+- Compiler warnings about unusual captures should be heeded - usually indicate design smell
+
+### 2025-09-08: vToolCommand Refactor - Compile-time Constants
+**Time Spent:** ~20 minutes  
+**Issue:** Virtual functions used for compile-time constant strings (command phrase and tip)  
+**Solution:** Refactored to use static constexpr members with CRTP pattern  
+
+#### Problem Analysis
+- `getCommandPhrase()` and `getCommandTip()` were virtual functions returning static strings
+- Virtual function overhead for values that never change at runtime
+- Unnecessary dynamic dispatch for compile-time constants
+
+#### Implementation
+**Changes:**
+- Removed virtual `getCommandPhrase()` and `getCommandTip()` from base class
+- Added `static constexpr` members to derived classes:
+  ```cpp
+  static constexpr const char* COMMAND_PHRASE = "ssh";
+  static constexpr const char* COMMAND_TIP = "Connect to SSH host...";
+  ```
+- Base class accesses via `Derived::COMMAND_PHRASE` in template instantiation
+- Keeps `handleCommand()` virtual for runtime polymorphism
+
+#### Design Benefits
+- **Performance**: Eliminates virtual function overhead for constants
+- **Compile-time enforcement**: Missing constants cause compile error at template instantiation
+- **True constexpr**: Values are actual compile-time constants
+- **Clean separation**: Runtime polymorphism only where needed
+
+#### Enforcement Mechanism
+- Compiler fails at template instantiation if constants not defined
+- Error occurs when `getInstance()` is referenced in code
+- Not at class definition (like pure virtual) but at point of use
+- Ensures design contract while allowing compile-time optimization
+
+**Rationale:** User correctly identified that command metadata is always known at compile time, making virtual functions unnecessary overhead. CRTP pattern maintains design contract enforcement while enabling true compile-time constants.
+
+*Last Updated: 2025-09-08 - Document maintained for human-readable project history and decisions*

@@ -1,6 +1,7 @@
 #ifndef SECURE_SHELL_H
 #define SECURE_SHELL_H
 
+#include "vToolCommand.h"
 #include <string>
 #include <vector>
 
@@ -8,9 +9,12 @@
 typedef struct _LIBSSH2_SESSION LIBSSH2_SESSION;
 typedef struct _LIBSSH2_CHANNEL LIBSSH2_CHANNEL;
 
-class SecureShell {
+class SecureShell : public vToolCommand<SecureShell> {
 public:
-    SecureShell();
+    // Static command metadata for CRTP base class
+    static constexpr const char* COMMAND_PHRASE = "ssh";
+    static constexpr const char* COMMAND_TIP = "Connect to SSH host and run discovery commands";
+    
     ~SecureShell();
     
     // Simple connect and execute
@@ -21,7 +25,7 @@ public:
     void disconnect();
     
     // Command handler for CommandDispatcher
-    bool handleCommand(const std::vector<std::string>& arguments);
+    bool handleCommand(const std::vector<std::string>& arguments) override;
     
 private:
     LIBSSH2_SESSION* m_session;
@@ -30,6 +34,9 @@ private:
     
     static const std::vector<std::string> DISCOVERY_COMMANDS;
     static const std::vector<char> PROMPT_ENDINGS;
+
+    SecureShell();
+    friend class vToolCommand<SecureShell>;
 };
 
-#endif // SSH_CONNECTION_H
+#endif // SECURE_SHELL_H

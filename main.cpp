@@ -20,17 +20,15 @@ int main() {
     // Initialize major components
     InputHandler& inputHandler = InputHandler::getInstance();  // Starts collecting input immediately
     CommandDispatcher::initialize();  // Initialize built-in commands
-    SecureShell secureShell;
+    
+    // Initialize tool commands (triggers auto-registration)
+    SecureShell& secureShell = SecureShell::getInstance();
     SubnetScanner subnetScanner;
     
-    // Register SSH command using std::bind
-    // CommandDispatcher::registerCommand("ssh", 
-    //     std::bind(&SecureShell::handleCommand, &secureShell, std::placeholders::_1),
-    //     "Test SSH connection to a host");
-
-    // CommandDispatcher::registerCommand("scan", 
-    //     std::bind(&SubnetScanner::handleCommand, &subnetScanner, std::placeholders::_1),
-    //     "search for alive hosts in a subnet");
+    // Register scan command (until SubnetScanner is converted to vToolCommand)
+    CommandDispatcher::registerCommand("scan", 
+        std::bind(&SubnetScanner::handleCommand, &subnetScanner, std::placeholders::_1),
+        "search for alive hosts in a subnet");
 
     bool running = true;
 

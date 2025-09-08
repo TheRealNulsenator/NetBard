@@ -1,26 +1,49 @@
+#ifndef V_TOOL_COMMAND_H
+#define V_TOOL_COMMAND_H
+
 #include <vector>
 #include <string>
-#include <CommandDispatcher.h>
+#include "CommandDispatcher.h"
 
-class vToolCommand{ //intended as virtual function only
+template<typename Derived>
+class vToolCommand {
+public:
+    // Virtual method that derived classes must implement
+    virtual bool handleCommand(const std::vector<std::string>& arguments) = 0;
 
-    public:
+    virtual ~vToolCommand() = default;
+    
+    // Delete copy constructor and assignment operator for singleton
+    vToolCommand(const vToolCommand&) = delete;
+    vToolCommand& operator=(const vToolCommand&) = delete;
 
-        virtual bool handleCommand(const std::vector<std::string>& arguments);
-        virtual const std::string& getCommandPhrase() const = 0;
-        virtual const std::string& getTipPhrase() const = 0;
-
-        //this only works in modern C++, 
-        vToolCommand(){ //vtable should be set up by the time base constructor is called
-            CommandDispatcher::registerCommand(
-                getCommandPhrase(), 
-                std::bind(handleCommand, this, std::placeholders::_1),
-                getTipPhrase());
-        }
-
-    protected:
-
-    private:
+    // Singleton getInstance with lazy registration
+    static Derived& getInstance() {
+        static Derived instance;
+        static bool registered = false;
         
-
+        // Register on first use (two-phase initialization)
+        if (!registered) { //I had to put this in because base constructors might run before vtable is made, conflicting resources made me worried.
+            CommandDispatcher::registerCommand(
+                Derived::COMMAND_PHRASE,
+                [](const std::vector<std::string>& args) {
+                    return Derived::getInstance().handleCommand(args);
+                },
+                Derived::COMMAND_TIP
+            );
+            registered = true;
+        }
+        
+        return instance;
+    }
+    
+protected:
+    // Protected constructor for base class
+    vToolCommand() = default;
+    
+private:
+    // Derived classes need access to protected constructor
+    friend Derived;
 };
+
+#endif // V_TOOL_COMMAND_H
