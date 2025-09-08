@@ -12,7 +12,7 @@ const int MAIN_LOOP_DELAY_MS = 10;
 int main() {
     std::cout << std::endl;
     std::cout << "Network Cartographer" << std::endl;
-    std::cout << "Grantek - Brad Nulsen (2025)" << std::endl;
+    std::cout << "Brad Nulsen (2025)" << std::endl;
     std::cout << "\nType 'help' for commands, 'quit' to exit" << std::endl;
     std::cout << "> ";
     std::cout.flush();
@@ -24,13 +24,13 @@ int main() {
     SubnetScanner subnetScanner;
     
     // Register SSH command using std::bind
-    CommandDispatcher::registerCommand("ssh", 
-        std::bind(&SecureShell::handleCommand, &secureShell, std::placeholders::_1),
-        "Test SSH connection to a host");
+    // CommandDispatcher::registerCommand("ssh", 
+    //     std::bind(&SecureShell::handleCommand, &secureShell, std::placeholders::_1),
+    //     "Test SSH connection to a host");
 
-    CommandDispatcher::registerCommand("scan", 
-        std::bind(&SubnetScanner::handleCommand, &subnetScanner, std::placeholders::_1),
-        "search for alive hosts in a subnet");
+    // CommandDispatcher::registerCommand("scan", 
+    //     std::bind(&SubnetScanner::handleCommand, &subnetScanner, std::placeholders::_1),
+    //     "search for alive hosts in a subnet");
 
     bool running = true;
 

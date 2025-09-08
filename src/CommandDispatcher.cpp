@@ -50,21 +50,18 @@ bool CommandDispatcher::handleHelp(const std::vector<std::string>& arguments) {
 bool CommandDispatcher::processCommand(const std::string& command) {
     std::vector<std::string> commandParts = splitCommand(command);
     
-    if (commandParts.empty()) {
-        return true;  // Empty command, continue running
+    if (commandParts.empty()) { // Empty command, continue running
+        return true;  
     }
     
     std::string commandName = commandParts[0];
-    
+
     auto commandHandlerIterator = s_commands.find(commandName);
-    
-    if (commandHandlerIterator != s_commands.end()) {
-        // Remove command name from arguments before passing to handler
-        commandParts.erase(commandParts.begin());
-        
-        auto commandHandler = commandHandlerIterator->second;
-        bool shouldContinueRunning = commandHandler(commandParts);
-        return shouldContinueRunning;
+    if (commandHandlerIterator != s_commands.end()) {   //we found a matching command
+        commandParts.erase(commandParts.begin());   // Remove command name from arguments before passing to handler
+        auto commandHandler = commandHandlerIterator->second;   //get pointer to the command function itself
+        bool shouldContinueRunning = commandHandler(commandParts);  //execute command with arguments
+        return shouldContinueRunning;   //return results of command to main control loop
     }
     
     std::cout << "Unknown command: " << command << std::endl;

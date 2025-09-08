@@ -73,28 +73,25 @@ bool SubnetScanner::find_hosts()
     std::vector<std::thread> threads;
     std::mutex output_mutex; //dont try to all talk at once
 
-    const auto MAX_THREADS = 100; //max concurrent pinging threads
-    const auto MS_BETWEEN_THREAD_SPAWNS = 10; //small delay between thread spawns to protect old PLCs
-    for (int i = 0; i < MAX_THREADS; i++) { //spawn all of our threads!
+    const auto MAX_THREADS = 100;               //max concurrent pinging threads
+    const auto MS_BETWEEN_THREAD_SPAWNS = 10;   //small delay between thread spawns to protect old PLCs
+    for (int i = 0; i < MAX_THREADS; i++) {     //spawn all of our threads!
 
         //uses emplace_back to avoid attempting thread copy operation
-        threads.emplace_back([&]() -> bool { //used lambda because this is an over engineered solution
-
-            // create ICMP handle once for each thread
-            HANDLE icmp_handle = IcmpCreateFile();    
+        threads.emplace_back([&]() -> bool {        //used lambda because this is an over engineered solution
+            HANDLE icmp_handle = IcmpCreateFile();  // create ICMP handle once for each thread
             if (icmp_handle == INVALID_HANDLE_VALUE) {
                 std::cout << "Failed to create ICMP handle" << std::endl;
                 return false;
             } 
 
-            //keep pinging addresses until we have gotten them all
-            while (true) { 
+            while (true) {      //keep pinging addresses until we have gotten them all
                 int my_index = index_of_next_address_to_ping.fetch_add(1); //ATOMIC fetch and increment
-                if (my_index >= Host_Addresses.size()) break; //no more work
+                if (my_index >= Host_Addresses.size()) break;   //no more work
                 
                 std::string address = Host_Addresses[my_index];
                 bool pingable = pingHost(address, icmp_handle);
-                {   //CRITICAL SECTION that can block other threads from accessing this while we write
+                {   //CRITICAL SECTION that can block other threads from accessing this while we write status
                     std::lock_guard<std::mutex> lock(output_mutex);
                     if (pingable) {
                         std::cout << address << " is alive" << std::endl;
@@ -109,15 +106,12 @@ bool SubnetScanner::find_hosts()
         std::this_thread::sleep_for(std::chrono::milliseconds(MS_BETWEEN_THREAD_SPAWNS));
     }
         
-    // Wait for all threads to terminate
-    for (auto& thread : threads) {
+    for (auto& thread : threads) {    // Wait for all threads to terminate
         thread.join();
     }
 
-    // clean up Winsock
-    WSACleanup();
+    WSACleanup();    // clean up Winsock
     
-    // Count alive hosts
     int alive_count = 0;
     for (const auto& [address, is_alive] : Host_Statuses) {
         if (is_alive) alive_count++;
