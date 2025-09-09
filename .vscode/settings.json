@@ -71,6 +71,7 @@
         "xutility": "cpp",
         "array": "cpp",
         "bitset": "cpp",
-        "semaphore": "cpp"
+        "semaphore": "cpp",
+        "fstream": "cpp"
     }
 }
