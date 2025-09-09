@@ -23,12 +23,7 @@ int main() {
     
     // Initialize tool commands (triggers auto-registration)
     SecureShell& secureShell = SecureShell::getInstance();
-    SubnetScanner subnetScanner;
-    
-    // Register scan command (until SubnetScanner is converted to vToolCommand)
-    CommandDispatcher::registerCommand("scan", 
-        std::bind(&SubnetScanner::handleCommand, &subnetScanner, std::placeholders::_1),
-        "search for alive hosts in a subnet");
+    SubnetScanner& subnetScanner = SubnetScanner::getInstance();
 
     bool running = true;
 

@@ -7,12 +7,18 @@
 #include <map>
 #include <winsock2.h>
 #include <windows.h>
+#include "vToolCommand.h"
 
-class SubnetScanner {
+class SubnetScanner : public vToolCommand<SubnetScanner>{
 
 public:
+
+    // Static command metadata for CRTP base class
+    static constexpr const char* COMMAND_PHRASE = "scan";
+    static constexpr const char* COMMAND_TIP = "search for active hosts in a subnet. Usage: scan <cidr>";
+
     bool pingHost(const std::string& address, HANDLE icmp_handle);
-    bool handleCommand(const std::vector<std::string>& arguments);
+    bool handleCommand(const std::vector<std::string>& arguments) override;
 
     std::string Network_Address;
     std::string Broadcast_Address;

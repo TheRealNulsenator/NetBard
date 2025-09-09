@@ -7,7 +7,7 @@
 #include <chrono>
 
 const std::vector<std::string> SecureShell::DISCOVERY_COMMANDS = {
-    "terminal length 0",                        // Return full output of all subsequent commands without dialogue
+    "terminal length 0",                       // Return full output of all subsequent commands without dialogue
     "show version",                            // Device model, IOS version, uptime
     "show ip interface brief",                 // All interfaces with IP addresses
     "show interfaces description",             // Interface descriptions
@@ -39,19 +39,19 @@ bool SecureShell::connect(const std::string& hostname, const std::string& userna
     // Create socket
     m_socket = socket(AF_INET, SOCK_STREAM, 0);
     
-    // Connect to host
     struct sockaddr_in sin; // "socket in"
     sin.sin_family = AF_INET;
     sin.sin_port = htons(port);
     sin.sin_addr.s_addr = inet_addr(hostname.c_str());
-    
+
+    // Connect to host via socket
     if (::connect(m_socket, (struct sockaddr*)(&sin), sizeof(struct sockaddr_in)) != 0) {
         std::cout << "Failed to connect to " << hostname << ":" << port << std::endl;
         closesocket(m_socket);
         return false;
     }
     
-    // Create session
+    // Create ssh session on opened socket connection
     m_session = libssh2_session_init();
     if (!m_session) {
         std::cout << "Failed to create SSH session" << std::endl;
@@ -59,7 +59,7 @@ bool SecureShell::connect(const std::string& hostname, const std::string& userna
         return false;
     }
     
-    // Handshake
+    // Handshake with host to establish stateful connection
     if (libssh2_session_handshake(m_session, m_socket) != 0) {
         std::cout << "SSH handshake failed" << std::endl;
         libssh2_session_free(m_session);
@@ -67,7 +67,7 @@ bool SecureShell::connect(const std::string& hostname, const std::string& userna
         return false;
     }
     
-    // Authenticate
+    // Authenticate! will allow most crypto algos, which windows ssh.exe does not by default, forcing me to do allll of this
     if (libssh2_userauth_password(m_session, username.c_str(), password.c_str()) != 0) {
         std::cout << "Authentication failed" << std::endl;
         libssh2_session_disconnect(m_session, "Authentication failed");
@@ -102,7 +102,6 @@ std::string SecureShell::execute(const std::string& command) {
     std::string result;
     char buffer[256];
     int bytesRead = 0;
-    
     while ((bytesRead = libssh2_channel_read(channel, buffer, sizeof(buffer)-1)) > 0) {
         buffer[bytesRead] = '\0';
         result += buffer;
@@ -118,21 +117,18 @@ std::string SecureShell::execute(const std::string& command) {
 void SecureShell::executeShell(const std::vector<std::string>& commands) {
     if (!m_connected) {
         std::cout << "Error: Not connected" << std::endl;
-        return;
     }
     
     // Open a channel
     LIBSSH2_CHANNEL* channel = libssh2_channel_open_session(m_session);
     if (!channel) {
         std::cout << "Error: Failed to open channel" << std::endl;
-        return;
     }
     
     // Request a shell
     if (libssh2_channel_shell(channel) != 0) {
         std::cout << "Error: Failed to request shell" << std::endl;
         libssh2_channel_free(channel);
-        return;
     }
     
     libssh2_channel_set_blocking(channel, 0);    // Set non-blocking mode for reading
@@ -143,7 +139,7 @@ void SecureShell::executeShell(const std::vector<std::string>& commands) {
     for (const auto& command : commands) {    // Execute each command
         std::string cmd = command + "\n";
         libssh2_channel_write(channel, cmd.c_str(), cmd.length());
-        output = waitShellPrompt(channel, buffer);
+        output = waitShellPrompt(channel, buffer);  //await for return value
         
         std::cout << output;
     }
@@ -155,25 +151,22 @@ void SecureShell::executeShell(const std::vector<std::string>& commands) {
 
 std::string SecureShell::waitShellPrompt(LIBSSH2_CHANNEL* channel, char* buffer){
 
-    // Read until we haven't received data for a short period
     std::string output;
     int bytesRead;
     int emptyReads = 0;
     const int MAX_EMPTY_READS = 25; 
     const int CHECK_INTERVAL_MS = 50;
     
-    while (emptyReads < MAX_EMPTY_READS) {
+    while (emptyReads < MAX_EMPTY_READS) {    // Read until we haven't received data for a short period
         bytesRead = libssh2_channel_read(channel, buffer, sizeof(buffer)-1);
         
-        if (bytesRead == LIBSSH2_ERROR_EAGAIN) {
-            // No data available yet
+        if (bytesRead == LIBSSH2_ERROR_EAGAIN) {    // No data available yet
             emptyReads++;
             std::this_thread::sleep_for(std::chrono::milliseconds(CHECK_INTERVAL_MS));
             continue;
         }
         
-        if (bytesRead <= 0) {
-            // Error or channel closed
+        if (bytesRead <= 0) {   // Error or channel closed
             break;
         }
         
@@ -181,8 +174,7 @@ std::string SecureShell::waitShellPrompt(LIBSSH2_CHANNEL* channel, char* buffer)
         output += buffer;
         emptyReads = 0;  // Reset counter when we get data
 
-        // Check if we've received a prompt
-        if (output.length() <= 2) continue;
+        if (output.length() <= 2) continue; // Check if we've received a prompt
         
         size_t lastNewline = output.find_last_of('\n');
         if (lastNewline == std::string::npos) continue;
@@ -190,9 +182,8 @@ std::string SecureShell::waitShellPrompt(LIBSSH2_CHANNEL* channel, char* buffer)
         std::string lastLine = output.substr(lastNewline + 1);
         if (lastLine.empty()) continue;
         
-        // Check if last character matches any prompt ending
         char lastChar = lastLine.back();
-        for (char promptChar : PROMPT_ENDINGS) {
+        for (char promptChar : PROMPT_ENDINGS) { // Check if last character matches any prompt ending
             if (lastChar == promptChar) {
                 return output;  // Found prompt, command complete
             }
@@ -221,8 +212,7 @@ bool SecureShell::handleCommand(const std::vector<std::string>& arguments) {
     std::string username = arguments[1];
     std::string password = arguments[2];
     
-    if (connect(hostname, username, password)) {
-        // Execute all discovery commands using shell mode
+    if (connect(hostname, username, password)) {    // Execute all discovery commands using shell mode
         executeShell(DISCOVERY_COMMANDS);
         disconnect();
     }

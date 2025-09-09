@@ -23,7 +23,7 @@ public:
         static bool registered = false;
         
         // Register on first use (two-phase initialization)
-        if (!registered) { //I had to put this in because base constructors might run before vtable is made, conflicting resources made me worried.
+        if (!registered) { //I had to put this in because base constructors might run before vtable is made
             CommandDispatcher::registerCommand(
                 Derived::COMMAND_PHRASE,
                 [](const std::vector<std::string>& args) {

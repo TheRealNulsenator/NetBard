@@ -26,13 +26,13 @@ bool SubnetScanner::handleCommand(const std::vector<std::string>& arguments) {
         const std::string subnet_cidr = arguments[0];
 
         std::vector<std::string> cidr_parts; //stores individual parts of subnet
-        if (!unwrap_cidr(subnet_cidr, cidr_parts)) { std::cout << "Invalid CIDR (#.#.#.#/#)" << std::endl; return false;} 
+        if (!unwrap_cidr(subnet_cidr, cidr_parts)) { std::cout << "Invalid CIDR (#.#.#.#/#)" << std::endl; return true;} 
     
         uint32_t ip; //binary address built of extracted octets
-        if (!address_to_bits(cidr_parts, ip)) { std::cout << "Invalid Address" << std::endl; return false;}
+        if (!address_to_bits(cidr_parts, ip)) { std::cout << "Invalid Address" << std::endl; return true;}
             
         uint32_t mask; //extracts subnet mask shorthand into binary mask
-        if (!create_subnet_mask(cidr_parts.back(), mask)) { std::cout << "Invalid Subnet" << std::endl; return false;}
+        if (!create_subnet_mask(cidr_parts.back(), mask)) { std::cout << "Invalid Subnet" << std::endl; return true;}
 
         const uint32_t network_address = ip & mask;
         const uint32_t broadcast_address = ip | ~mask;
@@ -66,7 +66,7 @@ bool SubnetScanner::find_hosts()
     WSADATA wsaData;
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {    // initialize Winsock once for all pings
         std::cout << "Failed to initialize Winsock" << std::endl;
-        return false;
+        return true;
     }
 
     std::atomic<int> index_of_next_address_to_ping = 0; //atomic, so that threads dont try to access same index
@@ -82,7 +82,7 @@ bool SubnetScanner::find_hosts()
             HANDLE icmp_handle = IcmpCreateFile();  // create ICMP handle once for each thread
             if (icmp_handle == INVALID_HANDLE_VALUE) {
                 std::cout << "Failed to create ICMP handle" << std::endl;
-                return false;
+                return true;
             } 
 
             while (true) {      //keep pinging addresses until we have gotten them all
