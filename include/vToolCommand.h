@@ -3,14 +3,14 @@
 
 #include <vector>
 #include <string>
+#include <fstream>
 #include "CommandDispatcher.h"
 
 template<typename Derived>
 class vToolCommand {
 public:
     // Virtual method that derived classes must implement
-    virtual bool handleCommand(const std::vector<std::string>& arguments) = 0;
-
+    virtual bool handleCommand(const std::vector<std::string>& arguments);
     virtual ~vToolCommand() = default;
     
     // Delete copy constructor and assignment operator for singleton
@@ -23,7 +23,7 @@ public:
         static bool registered = false;
         
         // Register on first use (two-phase initialization)
-        if (!registered) { //I had to put this in because base constructors might run before vtable is made
+        if (!registered) { //safer to do this in a singleton than try and perform in the constructor before derived vtable stuff is done
             CommandDispatcher::registerCommand(
                 Derived::COMMAND_PHRASE,
                 [](const std::vector<std::string>& args) {
@@ -38,12 +38,24 @@ public:
     }
     
 protected:
-    // Protected constructor for base class
-    vToolCommand() = default;
+    vToolCommand() = default; 
+    
+    void save_results(const std::string& fileName, const std::string& data) {
+        std::ofstream file(fileName);
+        if (!file.is_open()) {
+            std::cout << "failed to save output: " << fileName << std::endl;
+            return;
+        }
+        else{
+            file << data;
+            file.close();
+            std::cout << "saved output to: " << fileName << std::endl;
+        }
+       
+    }
     
 private:
-    // Derived classes need access to protected constructor
-    friend Derived;
+    friend Derived;    // Derived classes need access to protected constructor
 };
 
 #endif // V_TOOL_COMMAND_H
