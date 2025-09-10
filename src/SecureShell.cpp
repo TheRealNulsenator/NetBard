@@ -23,15 +23,12 @@ const std::vector<std::string> SecureShell::DISCOVERY_COMMANDS = {
 const std::vector<char> SecureShell::PROMPT_ENDINGS = {'>', '#', '$', '%'};
 
 SecureShell::SecureShell() : m_session(nullptr), m_socket(-1), m_connected(false) {
-    WSADATA wsadata;    // Initialize Winsock
-    WSAStartup(MAKEWORD(2, 0), &wsadata);
     libssh2_init(0);    // Initialize libssh2 
 }
 
 SecureShell::~SecureShell() {
     disconnect();
     libssh2_exit();
-    WSACleanup();
 }
 
 bool SecureShell::connect(const std::string& hostname, const std::string& username, 

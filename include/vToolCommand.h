@@ -4,13 +4,14 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <iostream>
 #include "CommandDispatcher.h"
 
 template<typename Derived>
 class vToolCommand {
 public:
     // Virtual method that derived classes must implement
-    virtual bool handleCommand(const std::vector<std::string>& arguments);
+    virtual bool handleCommand(const std::vector<std::string>& arguments) = 0;
     virtual ~vToolCommand() = default;
     
     // Delete copy constructor and assignment operator for singleton
@@ -39,7 +40,7 @@ public:
     
 protected:
     vToolCommand() = default; 
-    
+
     void save_results(const std::string& fileName, const std::string& data) {
         std::ofstream file(fileName);
         if (!file.is_open()) {

@@ -63,11 +63,6 @@ bool SubnetScanner::find_hosts()
 
     Host_Statuses.clear(); //reset status keys
 
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {    // initialize Winsock once for all pings
-        std::cout << "Failed to initialize Winsock" << std::endl;
-        return true;
-    }
 
     std::atomic<int> index_of_next_address_to_ping = 0; //atomic, so that threads dont try to access same index
     std::vector<std::thread> threads;
@@ -110,8 +105,6 @@ bool SubnetScanner::find_hosts()
         thread.join();
     }
 
-    WSACleanup();    // clean up Winsock
-    
     int alive_count = 0;
     for (const auto& [address, is_alive] : Host_Statuses) {
         if (is_alive) alive_count++;
