@@ -508,4 +508,82 @@ This refactor demonstrates the value of systematic cleanup processes and the imp
 
 **Rationale:** User correctly identified that command metadata is always known at compile time, making virtual functions unnecessary overhead. CRTP pattern maintains design contract enforcement while enabling true compile-time constants.
 
-*Last Updated: 2025-09-08 - Document maintained for human-readable project history and decisions*
+### 2025-09-08: Winsock Initialization Centralization
+**Time Spent:** ~10 minutes  
+**Issue:** Multiple components (SecureShell, SubnetScanner) calling WSAStartup/WSACleanup independently  
+**Solution:** Moved Winsock initialization to main.cpp  
+
+#### Changes
+- Added WSAStartup(MAKEWORD(2, 2)) at beginning of main()
+- Added WSACleanup() before program exit
+- Removed WSAStartup/WSACleanup from SecureShell constructor/destructor
+- Removed WSAStartup/WSACleanup from SubnetScanner::find_hosts()
+
+#### Benefits
+- **Single initialization point**: Follows Windows best practice
+- **No resource conflicts**: Prevents one component from cleaning up while another needs Winsock
+- **Cleaner architecture**: Infrastructure setup at program level, not component level
+- **Version consistency**: All components use same Winsock version (2.2)
+
+**Rationale:** User correctly noted that Windows documentation recommends single WSAStartup per process. While Windows reference counts these calls, centralizing initialization is cleaner and prevents potential issues.
+
+### 2025-09-08: vToolCommand Enhancement
+**Addition:** Protected save_results() method for file output
+- Simple file writing functionality
+- Takes filename and data as const string references
+- Returns void, outputs status to console
+- Available to all derived tool commands
+
+### 2025-09-08: SubnetScanner vToolCommand Migration
+**Change:** SubnetScanner now inherits from vToolCommand<SubnetScanner>
+- Added static constexpr COMMAND_PHRASE and COMMAND_TIP
+- Converted to singleton pattern via getInstance()
+- Auto-registers with CommandDispatcher on first use
+- Consistent with SecureShell implementation
+
+### 2025-09-11: Per-Command Logging System Design
+**Time Spent:** ~30 minutes design session  
+**Problem:** Need to capture all cout output to individual log files for each command execution  
+
+#### Requirements Analysis
+- Each command execution (scan, ssh, etc.) should generate its own timestamped log file
+- Must capture ALL cout output without modifying existing command implementations  
+- Should be transparent to command code (no changes needed)
+
+#### Design Decision: Contained within CommandDispatcher
+**Rationale:**  
+- Minimal code footprint (~50 lines total)
+- Single point of control for logging lifecycle
+- No new files or dependencies needed
+- Follows KISS principle (user preference)
+
+#### Architecture
+**TeeStreambuf nested class:**
+- Custom streambuf that inherits from `std::streambuf`
+- Overrides `overflow()` and `sync()` methods
+- Writes to both original cout and log file simultaneously
+
+**Logging lifecycle:**
+- `startLogging(commandName)`: Creates log file, redirects cout
+- `stopLogging()`: Restores original cout, closes log file
+- Called automatically by `processCommand()` wrapper
+
+**Log file format:**
+- Directory: `logs/`
+- Naming: `<command>_YYYYMMDD_HHMMSS.log`
+- Example: `logs/scan_20250911_143022.log`
+
+#### Implementation Status
+- **Completed:** Header file updated with complete infrastructure
+- **Pending:** Implementation of TeeStreambuf methods
+- **Pending:** Implementation of startLogging()/stopLogging()
+- **User responsibility:** Will complete implementation
+
+#### Benefits
+- No changes required to existing command code
+- All cout output automatically captured
+- Clean separation of concerns
+- Easy to enable/disable logging
+- Thread-safe design for multi-threaded commands
+
+*Last Updated: 2025-09-11 - Document maintained for human-readable project history and decisions*

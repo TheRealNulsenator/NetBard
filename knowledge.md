@@ -52,16 +52,17 @@ cartographer/
 
 ### Architecture
 - **main.cpp**: Creates all components, registers command handlers, runs main loop
+  - **Initializes Winsock once for entire program** (WSAStartup/WSACleanup)
   - Gets singleton instances of InputHandler and CommandDispatcher
-  - Gets singleton instance of SecureShell (via getInstance())
-  - Creates SubnetScanner object (not yet converted to vToolCommand pattern)
-  - Registers commands using std::bind for cleaner code
+  - Gets singleton instances of SecureShell and SubnetScanner (both via getInstance())
+  - Auto-registration happens on getInstance() calls for tool commands
 - **vToolCommand**: CRTP base template for tool commands
   - Provides singleton pattern via getInstance()
   - Auto-registers commands with CommandDispatcher on first use
   - Uses static constexpr for command metadata (COMMAND_PHRASE, COMMAND_TIP)
   - Virtual handleCommand() for runtime polymorphism
   - Enforces design contract at compile time via template instantiation
+  - Protected save_results() method for file output (bare bones implementation)
 - **CommandDispatcher**: Static class dispatcher with built-in help/quit/exit
   - Static class pattern: All methods and data are static, no instances
   - Initialize with `CommandDispatcher::initialize()`
@@ -70,6 +71,11 @@ cartographer/
   - Splits input into words, removes command name, passes arguments to handlers
   - Self-registers help/quit/exit as fundamental commands
   - Help command auto-lists all registered commands with tips
+  - **Per-command logging**: Captures all cout output to timestamped log files
+    - TeeStreambuf nested class: Custom streambuf that duplicates output
+    - startLogging()/stopLogging(): Manage cout redirection per command
+    - Log files: `logs/<command>_YYYYMMDD_HHMMSS.log` format
+    - Automatic: No changes needed in command implementations
 - **InputHandler**: Singleton thread-safe command input system (queue-based)
   - Singleton pattern: Lazy initialization, thread-safe since C++11
   - Access via `InputHandler::getInstance()`
@@ -84,6 +90,8 @@ cartographer/
   - Requires: libssh2 library
   - **Important**: Proper channel cleanup required between commands (send_eof, wait_eof, wait_closed)
 - **SubnetScanner**: Network subnet scanning and host discovery
+  - Inherits from vToolCommand<SubnetScanner> for singleton pattern
+  - Uses static constexpr for command metadata (COMMAND_PHRASE = "scan")
   - Handles CIDR notation parsing (supports both / and \ delimiters)
   - Converts IP addresses to binary representation (uint32_t)
   - Creates subnet masks from CIDR notation
@@ -97,7 +105,6 @@ cartographer/
       - Each thread pulls work until queue empty
       - ICMP handle created inside each thread (avoids reference capture issue)
     - Retry logic: 3 attempts per host, 500ms timeout each
-    - WSAStartup called once for entire scan
     - Mutex protection for console output and Host_Statuses map
     - Uses emplace_back to avoid thread copy construction
     - 5ms delay between thread spawns (reduced from 25ms)
@@ -184,11 +191,19 @@ cartographer/
 - User clarified this is for MY context, not documentation
 
 ## Ongoing Work
-- ✅ vToolCommand refactor for compile-time constants (2025-09-08)
-  - Removed virtual functions for getCommandPhrase() and getCommandTip()
-  - Changed to static constexpr members accessed via CRTP
-  - Reduces virtual function overhead for compile-time known values
-  - SecureShell converted to new pattern
+- 🔧 Per-command logging system (2025-09-11)
+  - Designed TeeStreambuf architecture in CommandDispatcher
+  - Keeps all logging code contained in single class
+  - Header updated with infrastructure, implementation pending
+  - User will complete implementation of startLogging()/stopLogging()
+- ✅ Winsock initialization refactor (2025-09-08)
+  - Moved WSAStartup/WSACleanup from individual components to main.cpp
+  - Single initialization for entire program (best practice)
+  - Removed from SecureShell and SubnetScanner
+- ✅ vToolCommand updates (2025-09-08)
+  - Refactored to use static constexpr for command metadata
+  - Added save_results() protected method for file output
+  - Both SecureShell and SubnetScanner now inherit from vToolCommand
 - ✅ SSH shell mode successfully implemented (2025-01-06)
   - Fixed "Failed to open channel" error by using shell mode
   - Refactored waitShellPrompt() using guard clauses
