@@ -14,7 +14,7 @@ public:
     virtual bool handleCommand(const std::vector<std::string>& arguments) = 0;
     virtual ~vToolCommand() = default;
     
-    // Delete copy constructor and assignment operator for singleton
+    // Delete copy constructor and assignment operator to enforce singleton pattern
     vToolCommand(const vToolCommand&) = delete;
     vToolCommand& operator=(const vToolCommand&) = delete;
 

@@ -191,6 +191,21 @@ cartographer/
 - User clarified this is for MY context, not documentation
 
 ## Ongoing Work
+- 🔧 Multi-Session SSH Architecture (2025-09-12)
+  - **Decision**: Implement concurrent SSH sessions with session switching
+  - **Goal**: Network scanning while maintaining persistent SSH connections
+  - **Architecture**: SessionManager with per-session threads and queues
+  - **Commands**: sessions, switch <id>, kill <id>, Ctrl+Z to detach
+  - **Implementation phases**:
+    1. Single SSH session with thread separation
+    2. Session manager with multiple sessions
+    3. Background scanning while in session
+    4. Session switching and management commands
+  - **Key components**:
+    - SessionManager class to track all sessions
+    - Per-session input/output queues
+    - Active session routing in main loop
+    - Session-specific logging
 - 🔧 Per-command logging system (2025-09-11)
   - Designed TeeStreambuf architecture in CommandDispatcher
   - Keeps all logging code contained in single class

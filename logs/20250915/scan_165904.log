@@ -1,0 +1,11 @@
+Network:      11000000101010000000000000000000
+Mask:         11111111111111111111111100000000
+Broadcast:    11000000101010000000000011111111
+Unique addresses: 254
+Scanning subnet 192.168.0.0 for hosts...
+192.168.0.69 is alive
+192.168.0.155 is alive
+192.168.0.152 is alive
+192.168.0.173 is alive
+192.168.0.254 is alive
+Scan complete. Found 5 alive hosts out of 254 scanned.

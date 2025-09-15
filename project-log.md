@@ -586,4 +586,98 @@ This refactor demonstrates the value of systematic cleanup processes and the imp
 - Easy to enable/disable logging
 - Thread-safe design for multi-threaded commands
 
-*Last Updated: 2025-09-11 - Document maintained for human-readable project history and decisions*
+### 2025-09-12: Multi-Session SSH Architecture Design
+**Time Spent:** ~45 minutes planning and design
+**Decision:** Implement multi-session SSH with concurrent operations support
+**User Requirements:**
+- Multiple SSH sessions maintained simultaneously
+- Ability to switch between sessions
+- Network scanning while SSH sessions remain connected
+- Precise logging per session
+
+#### Architecture Analysis
+**Option A: Separate CommandDispatcher Thread**
+- CommandDispatcher runs on dedicated thread
+- Always available for routing
+- Complex synchronization required
+
+**Option B: Main Thread Blocking**
+- Simple implementation
+- Limited to single session
+- Poor scalability
+
+**Final Decision: Modified Option A with SessionManager**
+- Each SSH session gets dedicated thread
+- SessionManager coordinates all sessions
+- Main thread handles routing and output
+- Non-blocking operations throughout
+
+#### Design Components
+
+**SessionManager Class:**
+```cpp
+struct Session {
+    uint32_t id;
+    string hostname;
+    thread sessionThread;
+    shared_ptr<SecureShell> shell;
+    queue<string> inputQueue;
+    queue<string> outputQueue;
+    mutex queueMutex;
+    bool active;
+};
+```
+
+**New Commands:**
+- `sessions` - List all active SSH sessions
+- `switch <id>` - Switch to specific session
+- `kill <id>` - Terminate specific session
+- `Ctrl+Z` - Detach from current session
+
+**Threading Model:**
+- Main thread: Routes input, flushes output
+- InputHandler thread: Collects keyboard input
+- Session threads: One per SSH connection
+- Scanner thread: Temporary for subnet scans
+
+**Benefits:**
+1. True concurrency - scan while connected
+2. Session persistence - no reconnection needed
+3. Clean separation - each session isolated
+4. Precise logging - per-session log files
+5. Future-proof - supports Telnet, Serial, SNMP
+
+#### Implementation Plan
+**Phase 1: Foundation**
+- Create SessionManager class
+- Refactor SecureShell for persistent connections
+- Implement single session with thread
+
+**Phase 2: Multi-Session**
+- Session creation and management
+- Input/output queue system
+- Session switching logic
+
+**Phase 3: Concurrent Operations**
+- Background scanning support
+- Output multiplexing
+- Notification system
+
+**Phase 4: Polish**
+- Session status display
+- Error recovery
+- Resource cleanup
+
+**Learning Goals:**
+- User wants to learn C++ patterns through implementation
+- Focus on threading, smart pointers, RAII
+- Build understanding of message passing between threads
+- Practice with STL containers (queues, maps)
+
+**Next Steps:**
+1. Create SessionManager.h/cpp files
+2. Refactor SecureShell for persistent mode
+3. Update CommandDispatcher for session routing
+4. Implement Phase 1 together for learning
+
+*Last Updated: 2025-09-12 - Document maintained for human-readable project history and decisions*
