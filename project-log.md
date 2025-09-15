@@ -680,4 +680,99 @@ struct Session {
 3. Update CommandDispatcher for session routing
 4. Implement Phase 1 together for learning
 
-*Last Updated: 2025-09-12 - Document maintained for human-readable project history and decisions*
+### 2025-09-15: Logging System Refactor - From Nested to Standalone Class
+**Time Spent:** ~2 hours design and implementation
+**Problem:** Need flexible logging system for command output capture
+**Evolution:** From nested class to standalone component to future vToolCommand integration
+
+#### Initial Implementation
+- **TeeStreambuf as nested class** in CommandDispatcher
+- Captured ALL command output including built-ins (unintended)
+- Single global logger instance
+
+#### Refactoring Journey
+
+**Phase 1: Understanding streambuf vs ostream**
+- `streambuf`: Low-level buffer for actual I/O operations
+- `ostream`: High-level interface using streambuf internally
+- Decision: Use ofstream with `rdbuf()` access for file operations
+
+**Phase 2: File Lifetime Management**
+- **Option 1**: Keep file open indefinitely
+  - Issues: Buffering risks, resource consumption
+- **Option 2**: Open/close per command (selected)
+  - Benefits: Data safety, clean resource management
+  - Implementation: Open on command start, flush immediately, close on completion
+
+**Phase 3: Pointer Safety Improvements**
+- **Problem**: Raw pointer passed to TeeStreambuf could become dangling
+- **Initial design**: CommandDispatcher owned unique_ptr, passed raw pointer
+- **Risk**: `reset()` would invalidate pointer in TeeStreambuf
+- **Solution**: Move ownership into TeeStreambuf itself
+  - TeeStreambuf owns the ofstream via unique_ptr
+  - Eliminates possibility of dangling pointers
+  - Single responsibility: TeeStreambuf manages entire file lifecycle
+
+**Phase 4: Extract to Standalone Class**
+- **Created LoggingStreambuf.h/cpp** as independent component
+- **Benefits**:
+  - Better modularity and reusability
+  - Clean separation of concerns
+  - Can be used by any component, not just CommandDispatcher
+
+#### Current Architecture
+
+**LoggingStreambuf Features:**
+- Inherits from `std::streambuf` for cout interception
+- Owns file management via `unique_ptr<ofstream>`
+- Creates timestamped directory structure: `logs/YYYYMMDD/`
+- Real-time flushing for immediate output
+- Thread-safe design for future multi-command scenarios
+
+**Integration:**
+- CommandDispatcher creates single LoggingStreambuf instance
+- Redirects cout on initialization
+- Calls `startLogging(commandName)` before each command
+- Calls `stopLogging()` after command completion
+
+#### TODO: Move Logging to vToolCommand
+
+**Problem:** Built-in commands (help, quit) are being logged unintentionally
+
+**Proposed Solution:**
+- Each vToolCommand instance creates its own LoggingStreambuf
+- Lifecycle matches command execution perfectly
+- Built-in commands naturally excluded (don't inherit from vToolCommand)
+
+**Implementation Plan:**
+```cpp
+class vToolCommand {
+    std::unique_ptr<LoggingStreambuf> m_logger;
+    std::streambuf* m_original_cout;
+    
+    vToolCommand(const std::string& name) {
+        m_logger = std::make_unique<LoggingStreambuf>();
+        m_logger->startLogging(name);
+        m_original_cout = std::cout.rdbuf(m_logger.get());
+    }
+    
+    ~vToolCommand() {
+        std::cout.rdbuf(m_original_cout);
+        m_logger->stopLogging();
+    }
+};
+```
+
+**Benefits:**
+- Automatic logging for all tool commands
+- No logging for built-in commands
+- Support for concurrent commands (each has own logger)
+- Clean RAII pattern for resource management
+
+#### Lessons Learned
+1. **Ownership clarity is critical** - avoid split ownership scenarios
+2. **RAII principles** prevent resource leaks and dangling pointers
+3. **Separation of concerns** - logging is independent of command dispatch
+4. **Evolution is natural** - design improved through iterative refinement
+
+*Last Updated: 2025-09-15 - Document maintained for human-readable project history and decisions*

@@ -38,11 +38,13 @@ cartographer/
 ├── include/
 │   ├── CommandDispatcher.h
 │   ├── InputHandler.h
+│   ├── LoggingStreambuf.h
 │   ├── SecureShell.h
 │   └── SubnetScanner.h
 ├── src/
 │   ├── CommandDispatcher.cpp
 │   ├── InputHandler.cpp
+│   ├── LoggingStreambuf.cpp
 │   ├── SecureShell.cpp
 │   └── SubnetScanner.cpp
 ├── knowledge.md (this file - LLM context)
@@ -71,11 +73,17 @@ cartographer/
   - Splits input into words, removes command name, passes arguments to handlers
   - Self-registers help/quit/exit as fundamental commands
   - Help command auto-lists all registered commands with tips
-  - **Per-command logging**: Captures all cout output to timestamped log files
-    - TeeStreambuf nested class: Custom streambuf that duplicates output
-    - startLogging()/stopLogging(): Manage cout redirection per command
-    - Log files: `logs/<command>_YYYYMMDD_HHMMSS.log` format
-    - Automatic: No changes needed in command implementations
+  - **Logging integration**: Initializes LoggingStreambuf and redirects cout
+    - Currently logs ALL commands including built-ins (unintended)
+    - TODO: Move logging to vToolCommand for selective logging
+- **LoggingStreambuf**: Standalone logging class that inherits from std::streambuf
+  - Duplicates cout output to timestamped log files
+  - Owns file lifecycle via unique_ptr<ofstream>
+  - Creates directory structure: `logs/YYYYMMDD/command_HHMMSS.txt`
+  - Auto-creates directories using std::filesystem
+  - Real-time file flushing for immediate output
+  - Thread-safe design for future multi-command scenarios
+  - TODO: Instantiate per vToolCommand instead of globally
 - **InputHandler**: Singleton thread-safe command input system (queue-based)
   - Singleton pattern: Lazy initialization, thread-safe since C++11
   - Access via `InputHandler::getInstance()`
