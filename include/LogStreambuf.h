@@ -5,14 +5,15 @@
 #include <fstream>
 #include <memory>
 #include <string>
+#include <sstream>
+#include <chrono>
 
-class LoggingStreambuf : public std::streambuf {
+class LogStreambuf : public std::streambuf {
 public:
-    LoggingStreambuf();
-    virtual ~LoggingStreambuf();
+    LogStreambuf();
+    virtual ~LogStreambuf();
     
-    // Start/stop logging to a file
-    void startLogging(const std::string& commandName);
+    void startLogging(const std::string& fileName);
     void stopLogging();
     
 protected:
@@ -21,8 +22,10 @@ protected:
     virtual int sync() override;
     
 private:
+    std::stringstream dirPath;
     std::streambuf* m_cout_buf;                     // Original cout buffer
     std::unique_ptr<std::ofstream> m_log_file;      // Log file stream (owned by LoggingStreambuf)
+    tm timestamp();
 };
 
 #endif // LOGGING_STREAMBUF_H

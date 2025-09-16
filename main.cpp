@@ -33,13 +33,11 @@ int main() {
     SecureShell& secureShell = SecureShell::getInstance();
     SubnetScanner& subnetScanner = SubnetScanner::getInstance();
 
-    bool running = true;
-
-    while (running) {    // Main loop
+    while (CommandDispatcher::s_running) {    // Main loop
 
         if (inputHandler.hasCommand()) {
             std::string command = inputHandler.getCommand();
-            running = CommandDispatcher::processCommand(command);
+            CommandDispatcher::processCommand(command);
             std::cout << "> ";
             std::cout.flush();
         }

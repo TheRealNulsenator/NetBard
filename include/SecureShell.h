@@ -25,7 +25,7 @@ public:
     void disconnect();
     
     // Command handler for CommandDispatcher
-    bool handleCommand(const std::vector<std::string>& arguments) override;
+    void handleCommand(const std::vector<std::string>& arguments) override;
     
 private:
     LIBSSH2_SESSION* m_session;

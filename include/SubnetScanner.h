@@ -18,7 +18,7 @@ public:
     static constexpr const char* COMMAND_TIP = "search for active hosts in a subnet. Usage: scan <cidr>";
 
     bool pingHost(const std::string& address, HANDLE icmp_handle);
-    bool handleCommand(const std::vector<std::string>& arguments) override;
+    void handleCommand(const std::vector<std::string>& arguments) override;
 
     std::string Network_Address;
     std::string Broadcast_Address;

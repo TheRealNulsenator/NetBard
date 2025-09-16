@@ -31,6 +31,23 @@ SecureShell::~SecureShell() {
     libssh2_exit();
 }
 
+void SecureShell::handleCommand(const std::vector<std::string>& arguments) {
+    if (arguments.size() < 3) {
+        std::cout << "Usage: ssh <hostname> <username> <password>" << std::endl;
+        return;
+    }
+    
+    std::string hostname = arguments[0];
+    std::string username = arguments[1];
+    std::string password = arguments[2];
+    
+    if (connect(hostname, username, password)) {    // Execute all discovery commands using shell mode
+        executeShell(DISCOVERY_COMMANDS);
+        disconnect();
+    }
+
+}
+
 bool SecureShell::connect(const std::string& hostname, const std::string& username, 
                            const std::string& password, int port) {
     // Create socket
@@ -199,20 +216,3 @@ void SecureShell::disconnect() {
     }
 }
 
-bool SecureShell::handleCommand(const std::vector<std::string>& arguments) {
-    if (arguments.size() < 3) {
-        std::cout << "Usage: ssh <hostname> <username> <password>" << std::endl;
-        return true;
-    }
-    
-    std::string hostname = arguments[0];
-    std::string username = arguments[1];
-    std::string password = arguments[2];
-    
-    if (connect(hostname, username, password)) {    // Execute all discovery commands using shell mode
-        executeShell(DISCOVERY_COMMANDS);
-        disconnect();
-    }
-    
-    return true;
-}

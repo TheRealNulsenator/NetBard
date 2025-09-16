@@ -14,7 +14,7 @@
                 "src\\InputHandler.cpp",
                 "src\\SecureShell.cpp",
                 "src\\SubnetScanner.cpp",
-                "src\\LoggingStreambuf.cpp",
+                "src\\LogStreambuf.cpp",
                 "-lssh2",
                 "-lws2_32",
                 "-liphlpapi",

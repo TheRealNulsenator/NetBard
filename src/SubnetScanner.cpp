@@ -15,24 +15,24 @@
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
 
-bool SubnetScanner::handleCommand(const std::vector<std::string>& arguments) {
+void SubnetScanner::handleCommand(const std::vector<std::string>& arguments) {
 
     if (arguments.size() == 0){
         std::cout << "Usage: scan <cidr>" << std::endl;
-        return true;
+        return;
     }
 
     if (arguments.size() >= 1) {
         const std::string subnet_cidr = arguments[0];
 
         std::vector<std::string> cidr_parts; //stores individual parts of subnet
-        if (!unwrap_cidr(subnet_cidr, cidr_parts)) { std::cout << "Invalid CIDR (#.#.#.#/#)" << std::endl; return true;} 
+        if (!unwrap_cidr(subnet_cidr, cidr_parts)) { std::cout << "Invalid CIDR (#.#.#.#/#)" << std::endl; return;} 
     
         uint32_t ip; //binary address built of extracted octets
-        if (!address_to_bits(cidr_parts, ip)) { std::cout << "Invalid Address" << std::endl; return true;}
+        if (!address_to_bits(cidr_parts, ip)) { std::cout << "Invalid Address" << std::endl; return;}
             
         uint32_t mask; //extracts subnet mask shorthand into binary mask
-        if (!create_subnet_mask(cidr_parts.back(), mask)) { std::cout << "Invalid Subnet" << std::endl; return true;}
+        if (!create_subnet_mask(cidr_parts.back(), mask)) { std::cout << "Invalid Subnet" << std::endl; return;}
 
         const uint32_t network_address = ip & mask;
         const uint32_t broadcast_address = ip | ~mask;
@@ -50,11 +50,8 @@ bool SubnetScanner::handleCommand(const std::vector<std::string>& arguments) {
         }
 
         std::cout << "Unique addresses: " << Host_Addresses.size() << std::endl;
-
-        return find_hosts();
+        find_hosts();
     }
-    
-    return true;
 }
 
 bool SubnetScanner::find_hosts()

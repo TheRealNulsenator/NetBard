@@ -1,46 +1,40 @@
-#include "LoggingStreambuf.h"
+#include "LogStreambuf.h"
 #include <iostream>
-#include <sstream>
-#include <chrono>
 #include <iomanip>
 #include <filesystem>
 
-LoggingStreambuf::LoggingStreambuf()
+LogStreambuf::LogStreambuf()
     : m_cout_buf(std::cout.rdbuf()), m_log_file(nullptr) {
-}
+        // Create directories (does nothing if they already exist)
+        auto local_t = timestamp(); 
+        dirPath << "logs/" << std::put_time(&local_t, "%Y%m%d");
+        std::filesystem::create_directories(dirPath.str());   
+    }
 
-LoggingStreambuf::~LoggingStreambuf() {
+LogStreambuf::~LogStreambuf() {
     stopLogging();  // Ensure file is closed
     sync();         // Flush any remaining data just incase
 }
 
-void LoggingStreambuf::startLogging(const std::string& commandName) {
-    // timestamp and date of command
-    auto now = std::chrono::system_clock::now();
-    auto time_t = std::chrono::system_clock::to_time_t(now);
-    auto local_t = std::localtime(&time_t);
-    
-    // Create directories (does nothing if they already exist)
-    std::stringstream dirpath;    
-    dirpath << "logs/" << std::put_time(local_t, "%Y%m%d");
-    std::filesystem::create_directories(dirpath.str());   
+void LogStreambuf::startLogging(const std::string& fileName) {
+
+    auto local_t = timestamp();
 
     std::stringstream filepath;    // Create full filepath
-    filepath << dirpath.str() << "/" << commandName << "_" << std::put_time(local_t, "%H%M%S") << ".txt";
-    
-    // Start logging to this file
-    stopLogging();  // Close any existing file
+    filepath << dirPath.str() << "/" << fileName << "_" << std::put_time(&local_t, "%H%M%S") << ".txt";
+
     m_log_file = std::make_unique<std::ofstream>(filepath.str(), std::ios::app);
+    std::cout.rdbuf(this);    // Start logging to the specified file
 }
 
-void LoggingStreambuf::stopLogging() {
+void LogStreambuf::stopLogging() {
     if (m_log_file && m_log_file->is_open()) {
         m_log_file->close();
     }
     m_log_file.reset();
 }
 
-int LoggingStreambuf::overflow(int c) {
+int LogStreambuf::overflow(int c) {
     if (c == EOF) {
         return EOF;
     }
@@ -54,7 +48,7 @@ int LoggingStreambuf::overflow(int c) {
     return c;
 }
 
-int LoggingStreambuf::sync() {
+int LogStreambuf::sync() {
     if (m_cout_buf->pubsync() == -1) {    // Sync console buffer
         return -1;
     }
@@ -62,4 +56,10 @@ int LoggingStreambuf::sync() {
         m_log_file->flush();
     }
     return 0;
+}
+
+tm LogStreambuf::timestamp(){ 
+    auto now = std::chrono::system_clock::now();
+    auto time_t = std::chrono::system_clock::to_time_t(now);
+    return *std::localtime(&time_t);
 }
