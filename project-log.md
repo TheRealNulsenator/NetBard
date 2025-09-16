@@ -775,4 +775,74 @@ class vToolCommand {
 3. **Separation of concerns** - logging is independent of command dispatch
 4. **Evolution is natural** - design improved through iterative refinement
 
+### 2025-09-15: Logging System Complete Implementation
+**Time Spent:** ~30 minutes final implementation
+**Status:** ✅ COMPLETE - Logging system fully integrated into vToolCommand
+
+#### Final Implementation Details
+
+**LogStreambuf Class:**
+- Renamed from LoggingStreambuf to LogStreambuf (cleaner naming)
+- Takes title parameter in constructor for command identification
+- Creates timestamped directories: `logs/YYYYMMDD/`
+- File naming: `title_details_HHMMSS.txt`
+- Added `sanitize_for_windows_path()` to handle special characters
+
+**Static Original Buffer Management:**
+```cpp
+static std::streambuf* s_cout_original_buf;  // Shared across all instances
+
+// In constructor:
+if(!s_cout_original_buf){
+    s_cout_original_buf = std::cout.rdbuf();
+}
+
+// In stopLogging():
+if (std::cout.rdbuf() == this){  // Safety check
+    std::cout.rdbuf(s_cout_original_buf);
+}
+```
+
+**vToolCommand Integration:**
+```cpp
+// In getInstance():
+if(!instance.m_log){
+    instance.m_log = std::make_unique<LogStreambuf>(Derived::COMMAND_PHRASE);
+}
+
+// Lambda wrapper for command execution:
+[](const std::vector<std::string>& args) {
+    Derived &instance = Derived::getInstance();
+    instance.m_log->startLogging(args[0]);  // Use first arg as details
+    instance.handleCommand(args);
+    instance.m_log->stopLogging();
+}
+```
+
+**CommandDispatcher Changes:**
+- Removed ALL logging code - complete separation
+- Changed command handlers from `bool` to `void` return
+- Added public static `s_running` flag for program control
+- Built-in commands (help, quit, exit) set `s_running` flag
+
+#### Key Design Achievements
+
+1. **Selective Logging**: Only tool commands are logged, built-ins are not
+2. **Zero Boilerplate**: Derived classes need no logging code
+3. **Safety Features**: 
+   - Static buffer prevents multiple saves
+   - Safety check prevents incorrect restoration
+   - Supports overlapping logger lifetimes
+4. **Clean Architecture**:
+   - CommandDispatcher has no logging responsibility
+   - LogStreambuf is fully standalone
+   - vToolCommand handles its own logging lifecycle
+
+#### Benefits Realized
+- Automatic logging for all tool commands
+- No logging overhead for built-in commands
+- Support for future concurrent commands
+- Robust handling of edge cases
+- Clean separation of concerns achieved
+
 *Last Updated: 2025-09-15 - Document maintained for human-readable project history and decisions*

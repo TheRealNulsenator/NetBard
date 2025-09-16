@@ -10,10 +10,10 @@
 
 class LogStreambuf : public std::streambuf {
 public:
-    LogStreambuf();
+    LogStreambuf(std::string title);
     virtual ~LogStreambuf();
     
-    void startLogging(const std::string& fileName);
+    void startLogging(const std::string& details);
     void stopLogging();
     
 protected:
@@ -22,10 +22,12 @@ protected:
     virtual int sync() override;
     
 private:
-    std::stringstream dirPath;
-    std::streambuf* m_cout_buf;                     // Original cout buffer
+    std::stringstream m_directory;
+    std::string m_file_title;
+    static std::streambuf* s_cout_original_buf;                     // Original cout buffer
     std::unique_ptr<std::ofstream> m_log_file;      // Log file stream (owned by LoggingStreambuf)
     tm timestamp();
+    std::string sanitize_for_windows_path(const std::string& filename);
 };
 
 #endif // LOGGING_STREAMBUF_H

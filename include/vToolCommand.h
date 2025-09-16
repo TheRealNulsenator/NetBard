@@ -11,21 +11,24 @@
 template<typename Derived>
 class vToolCommand {
 public:
-    // Virtual method that derived classes must implement
+    // derived classes must implement this
     virtual void handleCommand(const std::vector<std::string>& arguments) = 0;
-    virtual ~vToolCommand() = default;
+    
+    virtual ~vToolCommand() = default; //allow override but provide default
     
     // Delete copy constructor and assignment operator to enforce singleton pattern
     vToolCommand(const vToolCommand&) = delete;
     vToolCommand& operator=(const vToolCommand&) = delete;
 
-    // Singleton getInstance with lazy registration
-    static Derived& getInstance() {
+
+    static Derived& getInstance() { // Singleton pattern with lazy registration
         static Derived instance;
         static bool registered = false;   
+
         if(!instance.m_log){ //create logger if we dont already have one 
-            instance.m_log = std::make_unique<LogStreambuf>();
+            instance.m_log = std::make_unique<LogStreambuf>(Derived::COMMAND_PHRASE);
         }
+
         if (!registered) {  // Register on first use (two-phase initialization)
             CommandDispatcher::registerCommand( //safer to do this than risk it in the constructor 
                 Derived::COMMAND_PHRASE,
@@ -39,10 +42,12 @@ public:
             );
             registered = true;
         }      
+
         return instance;
     }
     
 protected:
+
     std::unique_ptr<LogStreambuf> m_log;
 
     vToolCommand() = default; 
@@ -61,7 +66,9 @@ protected:
     }
     
 private:
+
     friend Derived;    // Derived classes need access to protected constructor
+
 };
 
 #endif // V_TOOL_COMMAND_H

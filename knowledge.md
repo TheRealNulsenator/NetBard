@@ -38,13 +38,14 @@ cartographer/
 ├── include/
 │   ├── CommandDispatcher.h
 │   ├── InputHandler.h
-│   ├── LoggingStreambuf.h
+│   ├── LogStreambuf.h
 │   ├── SecureShell.h
-│   └── SubnetScanner.h
+│   ├── SubnetScanner.h
+│   └── vToolCommand.h
 ├── src/
 │   ├── CommandDispatcher.cpp
 │   ├── InputHandler.cpp
-│   ├── LoggingStreambuf.cpp
+│   ├── LogStreambuf.cpp
 │   ├── SecureShell.cpp
 │   └── SubnetScanner.cpp
 ├── knowledge.md (this file - LLM context)
@@ -62,28 +63,34 @@ cartographer/
   - Provides singleton pattern via getInstance()
   - Auto-registers commands with CommandDispatcher on first use
   - Uses static constexpr for command metadata (COMMAND_PHRASE, COMMAND_TIP)
-  - Virtual handleCommand() for runtime polymorphism
+  - Virtual handleCommand() for runtime polymorphism (void return)
   - Enforces design contract at compile time via template instantiation
   - Protected save_results() method for file output (bare bones implementation)
+  - **Integrated logging**: Each tool command automatically logs to file
+    - Creates LogStreambuf instance per command type
+    - Wraps handleCommand() with startLogging/stopLogging
+    - Log files: `logs/YYYYMMDD/command_details_HHMMSS.txt`
+    - Built-in commands (help/quit/exit) are NOT logged
 - **CommandDispatcher**: Static class dispatcher with built-in help/quit/exit
   - Static class pattern: All methods and data are static, no instances
   - Initialize with `CommandDispatcher::initialize()`
   - Access methods directly: `CommandDispatcher::processCommand()`, `CommandDispatcher::registerCommand()`
-  - All commands use uniform interface: `bool(const std::vector<std::string>&)`
+  - All commands use uniform interface: `void(const std::vector<std::string>&)`
+  - Uses public static `s_running` flag for program control
   - Splits input into words, removes command name, passes arguments to handlers
   - Self-registers help/quit/exit as fundamental commands
   - Help command auto-lists all registered commands with tips
-  - **Logging integration**: Initializes LoggingStreambuf and redirects cout
-    - Currently logs ALL commands including built-ins (unintended)
-    - TODO: Move logging to vToolCommand for selective logging
-- **LoggingStreambuf**: Standalone logging class that inherits from std::streambuf
+  - NO logging responsibility - completely removed
+- **LogStreambuf**: Standalone logging class that inherits from std::streambuf
   - Duplicates cout output to timestamped log files
   - Owns file lifecycle via unique_ptr<ofstream>
-  - Creates directory structure: `logs/YYYYMMDD/command_HHMMSS.txt`
+  - Creates directory structure: `logs/YYYYMMDD/title_details_HHMMSS.txt`
   - Auto-creates directories using std::filesystem
   - Real-time file flushing for immediate output
+  - **Static original cout buffer**: Shared across all instances for safety
+  - **Safety check on restoration**: Only restores if currently active streambuf
+  - Sanitizes filenames for Windows compatibility
   - Thread-safe design for future multi-command scenarios
-  - TODO: Instantiate per vToolCommand instead of globally
 - **InputHandler**: Singleton thread-safe command input system (queue-based)
   - Singleton pattern: Lazy initialization, thread-safe since C++11
   - Access via `InputHandler::getInstance()`

@@ -9,7 +9,7 @@ Compiled Thu 29-Sep-16 00:09 by prod_rel_team
 ROM: Bootstrap program is IE2000 boot loader
 BOOTLDR: IE2000 Boot Loader (IE2000-HBOOT-M) Version 15.2(3r)E, RELEASE SOFTWARE (fc1)
 
-GTCLESW12 uptime is 4 weeks, 2 days, 20 hours, 16 minutes
+GTCLESW12 uptime is 4 weeks, 3 days, 52 minutes
 System returned to ROM by power-on
 System image file is "flash:/s5700-universalk9-mz.152-5.EA/s5700-universalk9-mz.152-5.EA.bin"
 Last reload reason: power-on
@@ -169,13 +169,13 @@ Vlan    Mac Address       Type        Ports
  All    0180.c200.0010    STATIC      CPU
  All    ffff.ffff.ffff    STATIC      CPU
    1    0000.bc5e.70a9    DYNAMIC     Fa1/3
+   1    001d.9cd7.8e65    DYNAMIC     Fa1/3
    1    001d.9cd7.cdb8    DYNAMIC     Fa1/3
    1    001d.9cd7.ce51    DYNAMIC     Gi1/1
-   1    00d0.2472.9d6e    DYNAMIC     Fa1/3
    1    5c26.0ab6.fdaf    DYNAMIC     Fa1/3
    1    f454.339e.0d25    DYNAMIC     Fa1/4
+   1    f454.339e.f530    DYNAMIC     Fa1/3
    1    f8b1.5639.cbb3    DYNAMIC     Fa1/3
-   1    f8b1.5639.cbb4    DYNAMIC     Fa1/3
 Total Mac Addresses for this criterion: 34
 GTCLESW12>show cdp neighbors
 Capability Codes: R - Router, T - Trans Bridge, B - Source Route Bridge
@@ -184,7 +184,7 @@ Capability Codes: R - Router, T - Trans Bridge, B - Source Route Bridge
 
 Device ID        Local Intrfce     Holdtme    Capability  Platform  Port ID
 CN0H784T2829844M0127A01
-                 Fas 1/3           179               R    N3048     Gi3/0/13
+                 Fas 1/3           176               R    N3048     Gi3/0/13
 
 Total cdp entries displayed : 1
 GTCLESW12>show lldp neighbors

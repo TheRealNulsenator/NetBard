@@ -26,7 +26,6 @@ private:
     static std::unordered_map<std::string, CommandHandler> s_commands;     // Map of command names to handler functions
     static std::unordered_map<std::string, std::string> s_tips;            // Map of command names to tips
 
-    
     // Logging members
     static std::unique_ptr<LogStreambuf> s_loggingStreambuf;    // Logging streambuf instance
     

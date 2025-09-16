@@ -3,12 +3,18 @@
 #include <iomanip>
 #include <filesystem>
 
-LogStreambuf::LogStreambuf()
-    : m_cout_buf(std::cout.rdbuf()), m_log_file(nullptr) {
+std::streambuf* LogStreambuf::s_cout_original_buf = nullptr;
+
+LogStreambuf::LogStreambuf(std::string title){
+        m_file_title = title;
+        m_log_file = nullptr;
+        if(!s_cout_original_buf){ //private static pointer of original std::cout streambuf
+            s_cout_original_buf = std::cout.rdbuf();
+        }
         // Create directories (does nothing if they already exist)
         auto local_t = timestamp(); 
-        dirPath << "logs/" << std::put_time(&local_t, "%Y%m%d");
-        std::filesystem::create_directories(dirPath.str());   
+        m_directory << "logs/" << std::put_time(&local_t, "%Y%m%d");
+        std::filesystem::create_directories(m_directory.str());   
     }
 
 LogStreambuf::~LogStreambuf() {
@@ -16,13 +22,13 @@ LogStreambuf::~LogStreambuf() {
     sync();         // Flush any remaining data just incase
 }
 
-void LogStreambuf::startLogging(const std::string& fileName) {
-
+void LogStreambuf::startLogging(const std::string& details) {
+    stopLogging();  // Ensure file is closed
     auto local_t = timestamp();
-
     std::stringstream filepath;    // Create full filepath
-    filepath << dirPath.str() << "/" << fileName << "_" << std::put_time(&local_t, "%H%M%S") << ".txt";
-
+    filepath    << m_directory.str() << "/" << m_file_title     //title for unique command identifier
+                << "_" << sanitize_for_windows_path(details)    //details of this call
+                << "_" << std::put_time(&local_t, "%H%M%S") << ".txt"; //timestamp
     m_log_file = std::make_unique<std::ofstream>(filepath.str(), std::ios::app);
     std::cout.rdbuf(this);    // Start logging to the specified file
 }
@@ -32,13 +38,16 @@ void LogStreambuf::stopLogging() {
         m_log_file->close();
     }
     m_log_file.reset();
+    if (std::cout.rdbuf() == this){
+        std::cout.rdbuf(s_cout_original_buf);
+    }
 }
 
 int LogStreambuf::overflow(int c) {
     if (c == EOF) {
         return EOF;
     }
-    if (m_cout_buf->sputc(c) == EOF) {    // Write to console
+    if (s_cout_original_buf->sputc(c) == EOF) {    // Write to console
         return EOF;
     }
     if (m_log_file && m_log_file->is_open()) {    // Write to file
@@ -49,7 +58,7 @@ int LogStreambuf::overflow(int c) {
 }
 
 int LogStreambuf::sync() {
-    if (m_cout_buf->pubsync() == -1) {    // Sync console buffer
+    if (s_cout_original_buf->pubsync() == -1) {    // Sync console buffer
         return -1;
     }
     if (m_log_file && m_log_file->is_open()) {    // Sync file stream
@@ -62,4 +71,24 @@ tm LogStreambuf::timestamp(){
     auto now = std::chrono::system_clock::now();
     auto time_t = std::chrono::system_clock::to_time_t(now);
     return *std::localtime(&time_t);
+}
+
+
+std::string LogStreambuf::sanitize_for_windows_path(const std::string& filename) {
+    std::string result = filename;
+    
+    // Characters not allowed in Windows filenames
+    const std::string invalidChars = "<>:\"/\\|?*";
+    
+    for (char& c : result) {    // Replace each invalid character
+        if (invalidChars.find(c) != std::string::npos) {
+            c = '-';
+        }
+        // Also replace control characters (ASCII 0-31)
+        if (c >= 0 && c <= 31) {
+            c = '-';
+        }
+    }
+    
+    return result;
 }

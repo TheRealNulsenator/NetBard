@@ -6,10 +6,9 @@
 std::unordered_map<std::string, CommandDispatcher::CommandHandler> CommandDispatcher::s_commands;
 std::unordered_map<std::string, std::string> CommandDispatcher::s_tips;
 bool CommandDispatcher::s_running = false;
-//std::unique_ptr<LogStreambuf> CommandDispatcher::s_loggingStreambuf;
 
 void CommandDispatcher::initialize() {
-    if (!s_running) {
+    if (!s_running) { //set to running, and register built-in commands
         registerCommand("help", [](const std::vector<std::string>& args) {
             return handleHelp(args);
         }, "Show this message");
@@ -35,19 +34,17 @@ bool CommandDispatcher::handleHelp(const std::vector<std::string>& arguments) {
 }
 
 void CommandDispatcher::processCommand(const std::string& command) {
-    std::vector<std::string> commandParts = splitCommand(command);
-    if (commandParts.empty()) { // Empty command, continue running
+    std::vector<std::string> commandArgs = splitCommand(command);
+    if (commandArgs.empty()) { // Empty command, continue running
         return;  
     }  
-    std::string commandName = commandParts[0];
+    std::string commandName = commandArgs[0];   //extract unique command key 
+    commandArgs.erase(commandArgs.begin());     // Remove command name from arguments before passing to handler
     auto commandHandlerIterator = s_commands.find(commandName);
-    if (commandHandlerIterator != s_commands.end()) {   //we found a matching command
-        //s_loggingStreambuf->startLogging(commandName); // Start logging for this command    
-        commandParts.erase(commandParts.begin());   // Remove command name from arguments before passing to handler
-        auto commandHandler = commandHandlerIterator->second;   //get pointer to the command function itself
-        commandHandler(commandParts);  //execute command with arguments
-        //s_loggingStreambuf->stopLogging(); // Stop logging after command completes
-        return;   //return results of command to main control loop
+    if (commandHandlerIterator != s_commands.end()) {   //we found a matching command 
+        auto commandHandler = commandHandlerIterator->second;   //get pointer to the command function itself using commandname key
+        commandHandler(commandArgs);
+        return;
     }
     std::cout << "Unknown command: " << command << std::endl;
     std::cout << "Type 'help' for available commands" << std::endl;
@@ -59,7 +56,7 @@ void CommandDispatcher::registerCommand(const std::string& name, CommandHandler 
     s_tips[name] = tip;
 }
 
-std::vector<std::string> CommandDispatcher::splitCommand(const std::string& command) {
+std::vector<std::string> CommandDispatcher::splitCommand(const std::string& command) { //breaks up string into vector of seperate words
     std::vector<std::string> parts;
     std::stringstream stringStream(command);
     std::string part;
