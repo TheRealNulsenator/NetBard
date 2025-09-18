@@ -44,8 +44,7 @@ void SecureShell::handleCommand(const std::vector<std::string>& arguments) {
 bool SecureShell::connect(const std::string& hostname, const std::string& username, 
                            const std::string& password, int port) {
     // Create socket
-    m_socket = socket(AF_INET, SOCK_STREAM, 0);
-    
+    m_socket = socket(AF_INET, SOCK_STREAM, 0); 
     struct sockaddr_in sin; // "socket in"
     sin.sin_family = AF_INET;
     sin.sin_port = htons(port);
@@ -57,7 +56,6 @@ bool SecureShell::connect(const std::string& hostname, const std::string& userna
         closesocket(m_socket);
         return false;
     }
-    
     // Create ssh session on opened socket connection
     m_session = libssh2_session_init();
     if (!m_session) {
@@ -65,15 +63,13 @@ bool SecureShell::connect(const std::string& hostname, const std::string& userna
         closesocket(m_socket);
         return false;
     }
-    
     // Handshake with host to establish stateful connection
     if (libssh2_session_handshake(m_session, m_socket) != 0) {
         std::cout << "SSH handshake failed" << std::endl;
         libssh2_session_free(m_session);
         closesocket(m_socket);
         return false;
-    }
-    
+    } 
     // Authenticate! will allow most crypto algos, which windows ssh.exe does not by default, forcing me to do allll of this
     if (libssh2_userauth_password(m_session, username.c_str(), password.c_str()) != 0) {
         std::cout << "Authentication failed" << std::endl;
@@ -82,7 +78,6 @@ bool SecureShell::connect(const std::string& hostname, const std::string& userna
         closesocket(m_socket);
         return false;
     }
-    
     m_connected = true;
     std::cout << "Connected to " << hostname << " as " << username << std::endl;
     return true;
@@ -92,15 +87,11 @@ std::string SecureShell::execute(const std::string& command) {
     if (!m_connected) {
         return "Error: Not connected";
     }
-    
-    // Open channel
     LIBSSH2_CHANNEL* channel = libssh2_channel_open_session(m_session);
-    if (!channel) {
+    if (!channel) {// Open channel
         return "Error: Failed to open channel";
     }
-    
-    // Execute command
-    if (libssh2_channel_exec(channel, command.c_str()) != 0) {
+    if (libssh2_channel_exec(channel, command.c_str()) != 0) {// Execute command
         libssh2_channel_free(channel);
         return "Error: Failed to execute command";
     }
@@ -125,31 +116,27 @@ void SecureShell::interactShell() {
     if (!m_connected) {
         std::cout << "Error: Not connected" << std::endl;
     }
-    
-    // Open a channel
     LIBSSH2_CHANNEL* channel = libssh2_channel_open_session(m_session);
-    if (!channel) {
+    if (!channel) {    // Open a channel
         std::cout << "Error: Failed to open channel" << std::endl;
     }
-    
-    // Request a shell
-    if (libssh2_channel_shell(channel) != 0) {
+    if (libssh2_channel_shell(channel) != 0) {    // Request a shell
         std::cout << "Error: Failed to request shell" << std::endl;
         libssh2_channel_free(channel);
     }
     
+    //FIRST we send all default commands
     libssh2_channel_set_blocking(channel, 0);    // Set non-blocking mode for reading
     char buffer[4096];  //we will use this buffer a lot in the loop below
-
-    waitShellPrompt(channel, buffer);    // Wait for initial prompt
     std::string output;
     std::string cmd;
+    std::cout << waitShellPrompt(channel, buffer);    // Wait for initial prompt
     for (const auto& command : DISCOVERY_COMMANDS) {    // Execute each command
         cmd = command + "\n";
         libssh2_channel_write(channel, cmd.c_str(), cmd.length());
         std::cout << waitShellPrompt(channel, buffer);  //await for return value   
     }
-
+    //SECOND handle interactive commands
     InputHandler& inputHandler = InputHandler::getInstance();
     while(!libssh2_channel_eof(channel)){
         if (inputHandler.hasCommand()) {
@@ -157,8 +144,8 @@ void SecureShell::interactShell() {
             libssh2_channel_write(channel, cmd.c_str(), cmd.length());
             std::cout << waitShellPrompt(channel, buffer);  //await for return value   
         }
-
     }
+
     // Close channel
     libssh2_channel_close(channel);
     libssh2_channel_free(channel);

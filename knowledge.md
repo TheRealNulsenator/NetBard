@@ -95,15 +95,22 @@ cartographer/
   - Singleton pattern: Lazy initialization, thread-safe since C++11
   - Access via `InputHandler::getInstance()`
   - Private constructor, deleted copy constructor/assignment operator
-- **SecureShell** (formerly SSHConnection): Barebones libssh2 implementation
+- **SecureShell** (formerly SSHConnection): Interactive SSH shell implementation
   - Direct libssh2 API usage (no ssh.exe)
   - Password authentication only
-  - Simple connect/execute/disconnect model
+  - **Interactive shell mode** (2025-09-17):
+    - Opens persistent shell channel instead of exec channel
+    - Executes discovery commands automatically on connect
+    - Accepts user input via InputHandler for interactive commands
+    - Non-blocking read mode for responsive output
+    - Session continues until channel EOF
   - Inherits from vToolCommand<SecureShell> for singleton pattern
   - Uses static constexpr for command metadata (COMMAND_PHRASE, COMMAND_TIP)
   - Has handleCommand() method for CommandDispatcher integration
+  - **Key methods**:
+    - `interactShell()`: Main interactive loop with InputHandler integration
+    - `waitShellPrompt()`: Smart prompt detection with timeout
   - Requires: libssh2 library
-  - **Important**: Proper channel cleanup required between commands (send_eof, wait_eof, wait_closed)
 - **SubnetScanner**: Network subnet scanning and host discovery
   - Inherits from vToolCommand<SubnetScanner> for singleton pattern
   - Uses static constexpr for command metadata (COMMAND_PHRASE = "scan")
