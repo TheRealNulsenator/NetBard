@@ -1,4 +1,5 @@
 #include "SecureShell.h"
+#include "InputHandler.h"
 #include <iostream>
 #include <ws2tcpip.h>
 #include <winsock2.h>
@@ -8,13 +9,9 @@
 
 const std::vector<std::string> SecureShell::DISCOVERY_COMMANDS = {
     "terminal length 0",                       // Return full output of all subsequent commands without dialogue
-    "show version",                            // Device model, IOS version, uptime
-    "show ip interface brief",                 // All interfaces with IP addresses
-    "show interfaces description",             // Interface descriptions
     "show interface status",                   // Basic interface configurations
     "show mac address-table",                  // All layer 2 traffic
     "show cdp neighbors",                      // Connected Cisco devices
-    "show lldp neighbors",                     // Connected devices (standard protocol)
     "show vlan brief",                         // VLAN configuration
     "show interfaces trunk",                   // Trunk port details
     "show spanning-tree summary"               // STP overview
@@ -150,14 +147,25 @@ void SecureShell::executeShell(const std::vector<std::string>& commands) {
 
     waitShellPrompt(channel, buffer);    // Wait for initial prompt
     std::string output;
+    std::string cmd;
     for (const auto& command : commands) {    // Execute each command
-        std::string cmd = command + "\n";
+        cmd = command + "\n";
         libssh2_channel_write(channel, cmd.c_str(), cmd.length());
         output = waitShellPrompt(channel, buffer);  //await for return value
         
         std::cout << output;
     }
-    
+
+    InputHandler& inputHandler = InputHandler::getInstance();
+    while(!libssh2_channel_eof(channel)){
+        if (inputHandler.hasCommand()) {
+            cmd = inputHandler.getCommand() + "\n";
+            libssh2_channel_write(channel, cmd.c_str(), cmd.length());
+            output = waitShellPrompt(channel, buffer);  //await for return value   
+            std::cout << output;
+        }
+
+    }
     // Close channel
     libssh2_channel_close(channel);
     libssh2_channel_free(channel);

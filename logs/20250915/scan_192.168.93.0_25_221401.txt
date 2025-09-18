@@ -1,6 +1,0 @@
-Network:      11000000101010000101110100000000
-Mask:         11111111111111111111111110000000
-Broadcast:    11000000101010000101110101111111
-Unique addresses: 126
-Scanning subnet 192.168.93.0 for hosts...
-Scan complete. Found 0 alive hosts out of 126 scanned.

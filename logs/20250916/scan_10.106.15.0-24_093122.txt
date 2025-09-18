@@ -1,0 +1,17 @@
+Network:      00001010011010100000111100000000
+Mask:         11111111111111111111111100000000
+Broadcast:    00001010011010100000111111111111
+Unique addresses: 254
+Scanning subnet 10.106.15.0 for hosts...
+10.106.15.1 is alive
+10.106.15.16 is alive
+10.106.15.88 is alive
+10.106.15.120 is alive
+10.106.15.122 is alive
+10.106.15.140 is alive
+10.106.15.130 is alive
+10.106.15.151 is alive
+10.106.15.155 is alive
+10.106.15.150 is alive
+10.106.15.119 is alive
+Scan complete. Found 11 alive hosts out of 254 scanned.
