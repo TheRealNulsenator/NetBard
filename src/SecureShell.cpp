@@ -10,11 +10,7 @@
 const std::vector<std::string> SecureShell::DISCOVERY_COMMANDS = {
     "terminal length 0",                       // Return full output of all subsequent commands without dialogue
     "show interface status",                   // Basic interface configurations
-    "show mac address-table",                  // All layer 2 traffic
     "show cdp neighbors",                      // Connected Cisco devices
-    "show vlan brief",                         // VLAN configuration
-    "show interfaces trunk",                   // Trunk port details
-    "show spanning-tree summary"               // STP overview
 };
 
 const std::vector<char> SecureShell::PROMPT_ENDINGS = {'>', '#', '$', '%'};
@@ -39,7 +35,7 @@ void SecureShell::handleCommand(const std::vector<std::string>& arguments) {
     std::string password = arguments[2];
     
     if (connect(hostname, username, password)) {    // Execute all discovery commands using shell mode
-        executeShell(DISCOVERY_COMMANDS);
+        interactShell();
         disconnect();
     }
 
@@ -125,7 +121,7 @@ std::string SecureShell::execute(const std::string& command) {
     return result;
 }
 
-void SecureShell::executeShell(const std::vector<std::string>& commands) {
+void SecureShell::interactShell() {
     if (!m_connected) {
         std::cout << "Error: Not connected" << std::endl;
     }
@@ -148,12 +144,10 @@ void SecureShell::executeShell(const std::vector<std::string>& commands) {
     waitShellPrompt(channel, buffer);    // Wait for initial prompt
     std::string output;
     std::string cmd;
-    for (const auto& command : commands) {    // Execute each command
+    for (const auto& command : DISCOVERY_COMMANDS) {    // Execute each command
         cmd = command + "\n";
         libssh2_channel_write(channel, cmd.c_str(), cmd.length());
-        output = waitShellPrompt(channel, buffer);  //await for return value
-        
-        std::cout << output;
+        std::cout << waitShellPrompt(channel, buffer);  //await for return value   
     }
 
     InputHandler& inputHandler = InputHandler::getInstance();
@@ -161,8 +155,7 @@ void SecureShell::executeShell(const std::vector<std::string>& commands) {
         if (inputHandler.hasCommand()) {
             cmd = inputHandler.getCommand() + "\n";
             libssh2_channel_write(channel, cmd.c_str(), cmd.length());
-            output = waitShellPrompt(channel, buffer);  //await for return value   
-            std::cout << output;
+            std::cout << waitShellPrompt(channel, buffer);  //await for return value   
         }
 
     }
@@ -211,7 +204,8 @@ std::string SecureShell::waitShellPrompt(LIBSSH2_CHANNEL* channel, char* buffer)
             }
         }
     }
-        return output;
+ 
+    return output;
 }
 
 void SecureShell::disconnect() {

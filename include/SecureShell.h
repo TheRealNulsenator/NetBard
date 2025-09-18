@@ -20,7 +20,7 @@ public:
     // Simple connect and execute
     bool connect(const std::string& hostname, const std::string& username, const std::string& password, int port = 22);
     std::string execute(const std::string& command);
-    void executeShell(const std::vector<std::string>& commands);
+    void interactShell();
     std::string waitShellPrompt(LIBSSH2_CHANNEL* channel, char* buffer);
     void disconnect();
     
@@ -36,7 +36,8 @@ private:
     static const std::vector<char> PROMPT_ENDINGS;
 
     SecureShell();
-    friend class vToolCommand<SecureShell>;
+
+    friend class vToolCommand<SecureShell>; //always need to include this for user tools
 };
 
 #endif // SECURE_SHELL_H
