@@ -25,12 +25,12 @@ LogStreambuf::~LogStreambuf() {
 void LogStreambuf::startLogging(const std::string& details) {
     stopLogging();  // Ensure file is closed
     auto local_t = timestamp();
-    std::stringstream filepath;    // Create full filepath
+    std::stringstream filepath; 
     filepath    << m_directory.str() << "/" << m_file_title     //title for unique command identifier
                 << "_" << sanitize_for_windows_path(details)    //details of this call
                 << "_" << std::put_time(&local_t, "%H%M%S") << ".txt"; //timestamp
     m_log_file = std::make_unique<std::ofstream>(filepath.str(), std::ios::app);
-    std::cout.rdbuf(this);    // Start logging to the specified file
+    std::cout.rdbuf(this);    // redirect std::cout to also print to log file
 }
 
 void LogStreambuf::stopLogging() {

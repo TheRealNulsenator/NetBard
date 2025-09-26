@@ -17,7 +17,7 @@ public:
     
     ~SecureShell();
 
-    // Command handler for CommandDispatcher
+    bool validateInput(const std::vector<std::string>& arguments) override;
     void handleCommand(const std::vector<std::string>& arguments) override;
     
 private:

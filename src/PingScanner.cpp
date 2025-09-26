@@ -17,6 +17,35 @@
 
 PingScanner::PingScanner(){}
 
+bool PingScanner::validateInput(const std::vector<std::string>& arguments){
+    m_cidr_parts.clear();
+    const std::string cidr = arguments[0];
+    const std::string delimiters = "./\\";
+    size_t start = 0;
+    size_t end = cidr.find_first_of(delimiters);
+    
+    while (end != std::string::npos) {  //keep going until we have checked the whole string for delimiters
+        
+        if (end != start) {             //handles edge cases where first character is a delimiter, or consecutive delimiters
+            m_cidr_parts.push_back(cidr.substr(start, end - start));
+        }
+        start = end + 1;        //this blind pointer addition is how we introduce edge cases we need to check for above
+        end = cidr.find_first_of(delimiters, start);
+    }
+    
+    if (start < cidr.length()) { //shove the last segment onto the results vector
+        m_cidr_parts.push_back(cidr.substr(start));
+    }
+
+    const int EXPECTED_DOTS = 3;
+    const bool valid_octet_count = std::count(cidr.begin(), cidr.end(), '.') == EXPECTED_DOTS;
+    const bool valid_mask_count = std::count(cidr.begin(), cidr.end(), '/') == 1 || std::count(cidr.begin(), cidr.end(), '\\') == 1;
+    const size_t EXPECTED_TOKENS = 5;  // 4 octets + 1 mask
+    const bool valid_token_count = m_cidr_parts.size() == EXPECTED_TOKENS;
+    //check for 4 total octets, and check for subnet with either forward or backslash
+    return valid_octet_count && valid_mask_count && valid_token_count;
+}
+
 void PingScanner::handleCommand(const std::vector<std::string>& arguments) {
 
     if (arguments.size() == 0){
@@ -25,16 +54,12 @@ void PingScanner::handleCommand(const std::vector<std::string>& arguments) {
     }
 
     if (arguments.size() >= 1) {
-        const std::string subnet_cidr = arguments[0];
 
-        std::vector<std::string> cidr_parts; //stores individual parts of subnet
-        if (!unwrap_cidr(subnet_cidr, cidr_parts)) { std::cout << "Invalid CIDR (#.#.#.#/#)" << std::endl; return;} 
-    
         uint32_t ip; //binary address built of extracted octets
-        if (!address_to_bits(cidr_parts, ip)) { std::cout << "Invalid Address" << std::endl; return;}
+        if (!address_to_bits(m_cidr_parts, ip)) { std::cout << "Invalid Address" << std::endl; return;}
             
         uint32_t mask; //extracts subnet mask shorthand into binary mask
-        if (!create_subnet_mask(cidr_parts.back(), mask)) { std::cout << "Invalid Subnet" << std::endl; return;}
+        if (!create_subnet_mask(m_cidr_parts.back(), mask)) { std::cout << "Invalid Subnet" << std::endl; return;}
 
         const uint32_t network_address = ip & mask;
         const uint32_t broadcast_address = ip | ~mask;

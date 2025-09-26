@@ -12,8 +12,9 @@ template<typename Derived>
 class vToolCommand {
 public:
     // derived classes must implement this
+    virtual bool validateInput(const std::vector<std::string>& arguments) = 0;
     virtual void handleCommand(const std::vector<std::string>& arguments) = 0;
-    virtual void validateInput(const std::vector<std::string>& arguments) = 0;
+
     virtual ~vToolCommand() = default; //allow override but provide default
     
     // Delete copy constructor and assignment operator to enforce singleton pattern
@@ -33,7 +34,8 @@ public:
                 Derived::COMMAND_PHRASE,
                 [](const std::vector<std::string>& args) { //opportunity to use decorator class pattern here
                     Derived &instance = Derived::getInstance();
-
+                    if(!instance.validateInput(args))
+                        return;
                     instance.m_log->startLogging(args[0]);
                     instance.handleCommand(args);
                     instance.m_log->stopLogging();
@@ -48,21 +50,7 @@ public:
 protected:
 
     std::unique_ptr<LogStreambuf> m_log; //instance of our logger
-
     vToolCommand() = default; 
-
-    void save_results(const std::string& fileName, const std::string& data) {
-        std::ofstream file(fileName);
-        if (!file.is_open()) {
-            std::cout << "failed to save output: " << fileName << std::endl;
-            return;
-        }
-        else{
-            file << data;
-            file.close();
-            std::cout << "saved output to: " << fileName << std::endl;
-        } 
-    }
     
 private:
 

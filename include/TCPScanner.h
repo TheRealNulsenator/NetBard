@@ -14,7 +14,8 @@ class TCPScanner : public vToolCommand<TCPScanner>
 
         static std::vector<int> Port_List;
         static std::map<int, std::string> Port_Descriptions;
-
+        
+        bool validateInput(const std::vector<std::string>& arguments) override;
         void handleCommand(const std::vector<std::string>& arguments) override;
 
     private:

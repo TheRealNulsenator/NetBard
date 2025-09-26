@@ -17,6 +17,7 @@ public:
     static constexpr const char* COMMAND_PHRASE = "ping";
     static constexpr const char* COMMAND_TIP = "Ping sweep subnet for active hosts. Usage: ping <cidr>";
 
+    bool validateInput(const std::vector<std::string>& arguments) override;
     void handleCommand(const std::vector<std::string>& arguments) override;
 
     std::string Network_Address;
@@ -32,7 +33,7 @@ protected:
     std::string bits_to_address(const uint32_t ip);
 
 private:
-
+    std::vector<std::string> m_cidr_parts;
     std::vector<std::string> hosts;
     bool pingHost(const std::string& address, HANDLE icmp_handle);
     bool scan_hosts();
