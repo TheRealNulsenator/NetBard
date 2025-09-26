@@ -11,6 +11,7 @@ const std::vector<std::string> SecureShell::DISCOVERY_COMMANDS = {
     "terminal length 0",                       // Return full output of all subsequent commands without dialogue
     "show interface status",                   // Basic interface configurations
     "show cdp neighbors",                      // Connected Cisco devices
+    "show mac address-table"                   // Gets L2 address traffic
 };
 
 const std::vector<char> SecureShell::PROMPT_ENDINGS = {'>', '#', '$', '%'};
@@ -20,8 +21,8 @@ SecureShell::SecureShell() : m_session(nullptr), m_socket(-1), m_connected(false
 }
 
 SecureShell::~SecureShell() {
-    disconnect();
-    libssh2_exit();
+    disconnect(); //kill any open connections
+    libssh2_exit(); //de-allocate libssh2
 }
 
 void SecureShell::handleCommand(const std::vector<std::string>& arguments) {
@@ -29,20 +30,20 @@ void SecureShell::handleCommand(const std::vector<std::string>& arguments) {
         std::cout << "Usage: ssh <hostname> <username> <password>" << std::endl;
         return;
     }
-    
     std::string hostname = arguments[0];
     std::string username = arguments[1];
-    std::string password = arguments[2];
-    
+    std::string password = arguments[2];   
     if (connect(hostname, username, password)) {    // Execute all discovery commands using shell mode
-        interactShell();
+        interactShell(); //blocking operation, returns once shell is naturally closed or error occurs
         disconnect();
     }
 
 }
 
-bool SecureShell::connect(const std::string& hostname, const std::string& username, 
-                           const std::string& password, int port) {
+bool SecureShell::connect(  const std::string& hostname, 
+                            const std::string& username, 
+                            const std::string& password, 
+                            int port) {
     // Create socket
     m_socket = socket(AF_INET, SOCK_STREAM, 0); 
     struct sockaddr_in sin; // "socket in"

@@ -6,7 +6,8 @@
 #include "InputHandler.h"
 #include "CommandDispatcher.h"
 #include "SecureShell.h"
-#include "SubnetScanner.h"
+#include "PingScanner.h"
+#include "TCPScanner.h"
 
 const int MAIN_LOOP_DELAY_MS = 10;
 
@@ -31,7 +32,8 @@ int main() {
     
     // Initialize tool commands (triggers auto-registration)
     SecureShell& secureShell = SecureShell::getInstance();
-    SubnetScanner& subnetScanner = SubnetScanner::getInstance();
+    PingScanner& pingScanner = PingScanner::getInstance();
+    TCPScanner& tcpScanner = TCPScanner::getInstance();
 
     while (CommandDispatcher::s_running) {    // Main loop
 

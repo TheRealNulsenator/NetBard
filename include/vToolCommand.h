@@ -13,13 +13,12 @@ class vToolCommand {
 public:
     // derived classes must implement this
     virtual void handleCommand(const std::vector<std::string>& arguments) = 0;
-    
+    virtual void validateInput(const std::vector<std::string>& arguments) = 0;
     virtual ~vToolCommand() = default; //allow override but provide default
     
     // Delete copy constructor and assignment operator to enforce singleton pattern
     vToolCommand(const vToolCommand&) = delete;
     vToolCommand& operator=(const vToolCommand&) = delete;
-
 
     static Derived& getInstance() { // Singleton pattern with lazy registration
         static Derived instance;
@@ -32,8 +31,9 @@ public:
         if (!registered) {  // Register on first use (two-phase initialization)
             CommandDispatcher::registerCommand( //safer to do this than risk it in the constructor 
                 Derived::COMMAND_PHRASE,
-                [](const std::vector<std::string>& args) {
+                [](const std::vector<std::string>& args) { //opportunity to use decorator class pattern here
                     Derived &instance = Derived::getInstance();
+
                     instance.m_log->startLogging(args[0]);
                     instance.handleCommand(args);
                     instance.m_log->stopLogging();
@@ -42,13 +42,12 @@ public:
             );
             registered = true;
         }      
-
         return instance;
     }
     
 protected:
 
-    std::unique_ptr<LogStreambuf> m_log;
+    std::unique_ptr<LogStreambuf> m_log; //instance of our logger
 
     vToolCommand() = default; 
 

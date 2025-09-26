@@ -1,6 +1,8 @@
 #include "CommandDispatcher.h"
 #include <iostream>
 #include <sstream>
+#include <algorithm>
+#include <cctype>
 
 // Static member definitions
 std::unordered_map<std::string, CommandDispatcher::CommandHandler> CommandDispatcher::s_commands;
@@ -36,9 +38,14 @@ bool CommandDispatcher::handleHelp(const std::vector<std::string>& arguments) {
 void CommandDispatcher::processCommand(const std::string& command) {
     std::vector<std::string> commandArgs = splitCommand(command);
     if (commandArgs.empty()) { // Empty command, continue running
-        return;  
-    }  
-    std::string commandName = commandArgs[0];   //extract unique command key 
+        return;
+    }
+    std::string commandName = commandArgs[0];   //extract unique command key
+
+    // Convert command name to lowercase for case-insensitive matching
+    std::transform(commandName.begin(), commandName.end(), commandName.begin(),
+                   [](unsigned char c){ return std::tolower(c); });
+
     commandArgs.erase(commandArgs.begin());     // Remove command name from arguments before passing to handler
     auto commandHandlerIterator = s_commands.find(commandName);
     if (commandHandlerIterator != s_commands.end()) {   //we found a matching command 

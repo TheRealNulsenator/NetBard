@@ -16,14 +16,7 @@ public:
     static constexpr const char* COMMAND_TIP = "Autorun ssh commands against a host. Usage: ssh <IP> <user> <pw>";
     
     ~SecureShell();
-    
-    // Simple connect and execute
-    bool connect(const std::string& hostname, const std::string& username, const std::string& password, int port = 22);
-    std::string execute(const std::string& command);
-    void interactShell();
-    std::string waitShellPrompt(LIBSSH2_CHANNEL* channel, char* buffer);
-    void disconnect();
-    
+
     // Command handler for CommandDispatcher
     void handleCommand(const std::vector<std::string>& arguments) override;
     
@@ -35,9 +28,15 @@ private:
     static const std::vector<std::string> DISCOVERY_COMMANDS;
     static const std::vector<char> PROMPT_ENDINGS;
 
-    SecureShell();
+    // Simple connect and execute
+    bool connect(const std::string& hostname, const std::string& username, const std::string& password, int port = 22);
+    std::string execute(const std::string& command);
+    void interactShell();
+    std::string waitShellPrompt(LIBSSH2_CHANNEL* channel, char* buffer);
+    void disconnect();
 
-    friend class vToolCommand<SecureShell>; //always need to include this for user tools
+    SecureShell();
+    friend class vToolCommand<SecureShell>; //needed to allow getInstance to work in parent class
 };
 
 #endif // SECURE_SHELL_H

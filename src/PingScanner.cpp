@@ -1,5 +1,5 @@
 
-#include "SubnetScanner.h"
+#include "PingScanner.h"
 #include <iostream>
 #include <algorithm>
 #include <bitset>
@@ -15,10 +15,12 @@
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
 
-void SubnetScanner::handleCommand(const std::vector<std::string>& arguments) {
+PingScanner::PingScanner(){}
+
+void PingScanner::handleCommand(const std::vector<std::string>& arguments) {
 
     if (arguments.size() == 0){
-        std::cout << "Usage: scan <cidr>" << std::endl;
+        std::cout << "Usage: ping <cidr>" << std::endl;
         return;
     }
 
@@ -50,70 +52,60 @@ void SubnetScanner::handleCommand(const std::vector<std::string>& arguments) {
         }
 
         std::cout << "Unique addresses: " << Host_Addresses.size() << std::endl;
-        find_hosts();
-    }
-}
+        std::cout << "Scanning subnet " << Network_Address << " for hosts..." << std::endl;
 
-bool SubnetScanner::find_hosts()
-{
-    std::cout << "Scanning subnet " << Network_Address << " for hosts..." << std::endl;
+        Host_Statuses.clear(); //reset status keys
 
-    Host_Statuses.clear(); //reset status keys
+        std::atomic<int> index_of_next_address_to_ping = 0; //atomic, so that threads dont try to access same index
+        std::vector<std::thread> threads;
+        std::mutex output_mutex; //dont try to all talk at once
 
+        const auto MAX_THREADS = 100;               //max concurrent pinging threads
+        const auto MS_BETWEEN_THREAD_SPAWNS = 10;   //small delay between thread spawns to protect old PLCs
+        for (int i = 0; i < MAX_THREADS; i++) {     //spawn all of our threads!
+            //uses emplace_back to avoid attempting thread copy operation
+            threads.emplace_back([&]() -> void {   
+                //used lambda because this is an over-engineered solution
+                HANDLE icmp_handle = IcmpCreateFile();  // create ICMP handle once for each thread
+                if (icmp_handle == INVALID_HANDLE_VALUE) {
+                    std::cout << "Failed to create ICMP handle" << std::endl;
+                    return;
+                } 
+                while (true) {  //keep scanning addresses until we have gotten them all
+                    int my_index = index_of_next_address_to_ping.fetch_add(1); //ATOMIC fetch and increment
+                    if (my_index >= Host_Addresses.size()) break;   //no more work           
+                    std::string address = Host_Addresses[my_index];
+                    bool pingable = pingHost(address, icmp_handle);
+                    {   //CRITICAL SECTION that can block other threads from accessing this while we write status
+                        std::lock_guard<std::mutex> lock(output_mutex);
+                        if (pingable) {
+                            std::cout << address << std::endl;
+                        }
+                        Host_Statuses[address] = pingable;   
+                    }  
+                }
+                IcmpCloseHandle(icmp_handle);    
+                //END OF LAMBDA
+            });
+            // Delay how quickly we spin up threads to avoid faulting old PLC processors with ping storm
+            std::this_thread::sleep_for(std::chrono::milliseconds(MS_BETWEEN_THREAD_SPAWNS));
+        }
+            
+        for (auto& thread : threads) {    // Wait for all threads to terminate
+            thread.join();
+        }
 
-    std::atomic<int> index_of_next_address_to_ping = 0; //atomic, so that threads dont try to access same index
-    std::vector<std::thread> threads;
-    std::mutex output_mutex; //dont try to all talk at once
-
-    const auto MAX_THREADS = 100;               //max concurrent pinging threads
-    const auto MS_BETWEEN_THREAD_SPAWNS = 10;   //small delay between thread spawns to protect old PLCs
-    for (int i = 0; i < MAX_THREADS; i++) {     //spawn all of our threads!
-
-        //uses emplace_back to avoid attempting thread copy operation
-        threads.emplace_back([&]() -> bool {        //used lambda because this is an over engineered solution
-            HANDLE icmp_handle = IcmpCreateFile();  // create ICMP handle once for each thread
-            if (icmp_handle == INVALID_HANDLE_VALUE) {
-                std::cout << "Failed to create ICMP handle" << std::endl;
-                return true;
-            } 
-
-            while (true) {      //keep pinging addresses until we have gotten them all
-                int my_index = index_of_next_address_to_ping.fetch_add(1); //ATOMIC fetch and increment
-                if (my_index >= Host_Addresses.size()) break;   //no more work
-                
-                std::string address = Host_Addresses[my_index];
-                bool pingable = pingHost(address, icmp_handle);
-                {   //CRITICAL SECTION that can block other threads from accessing this while we write status
-                    std::lock_guard<std::mutex> lock(output_mutex);
-                    if (pingable) {
-                        std::cout << address << " is alive" << std::endl;
-                    }
-                    Host_Statuses[address] = pingable;   
-                }  
-            }
-            IcmpCloseHandle(icmp_handle);  
-            return true;      
-        });
-        // Delay how quickly we spin up threads to avoid faulting old PLC processors with ping storm
-        std::this_thread::sleep_for(std::chrono::milliseconds(MS_BETWEEN_THREAD_SPAWNS));
-    }
+        int alive_count = 0;
+        for (const auto& [address, is_alive] : Host_Statuses) {
+            if (is_alive) alive_count++;
+        }
         
-    for (auto& thread : threads) {    // Wait for all threads to terminate
-        thread.join();
+        std::cout << "Scan complete. Found " << alive_count << " alive hosts out of " << Host_Addresses.size() << " scanned." << std::endl;
     }
 
-    int alive_count = 0;
-    for (const auto& [address, is_alive] : Host_Statuses) {
-        if (is_alive) alive_count++;
-    }
-    
-    std::cout << "Scan complete. Found " << alive_count << " alive hosts out of " << Host_Addresses.size() << " scanned." << std::endl;
-    
-    return true;
 }
 
-
-bool SubnetScanner::unwrap_cidr(const std::string& cidr, std::vector<std::string>& results)
+bool PingScanner::unwrap_cidr(const std::string& cidr, std::vector<std::string>& results)
 {
     results.clear();
     const std::string delimiters = "./\\";
@@ -143,7 +135,7 @@ bool SubnetScanner::unwrap_cidr(const std::string& cidr, std::vector<std::string
 }
 
 
-bool SubnetScanner::address_to_bits(const std::vector<std::string>& octets, uint32_t& ip)
+bool PingScanner::address_to_bits(const std::vector<std::string>& octets, uint32_t& ip)
 {    
     ip = 0;  // Initialize the output parameter
     try {
@@ -169,7 +161,7 @@ bool SubnetScanner::address_to_bits(const std::vector<std::string>& octets, uint
 }
 
 
-std::string SubnetScanner::bits_to_address(const uint32_t ip)
+std::string PingScanner::bits_to_address(const uint32_t ip)
 {
     std::stringstream ss;
     ss << ((ip >> 24) & 0xFF) << "."
@@ -180,7 +172,7 @@ std::string SubnetScanner::bits_to_address(const uint32_t ip)
 }
 
 
-bool SubnetScanner::create_subnet_mask(const std::string& subnet_mask, uint32_t& results) {
+bool PingScanner::create_subnet_mask(const std::string& subnet_mask, uint32_t& results) {
     int bits;
     try { bits = std::stoi(subnet_mask);} //perform string to int conversion
     catch(const std:: exception& e){ return false;}
@@ -193,7 +185,7 @@ bool SubnetScanner::create_subnet_mask(const std::string& subnet_mask, uint32_t&
 }
 
 
-bool SubnetScanner::pingHost(const std::string& address, HANDLE icmp_handle)
+bool PingScanner::pingHost(const std::string& address, HANDLE icmp_handle)
 {
     const int PING_TIMEOUT_MS = 2000;
     const int MAX_PING_ATTEMPTS = 2;

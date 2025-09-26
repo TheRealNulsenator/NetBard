@@ -5,7 +5,8 @@
       "Bash(del:*)",
       "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer\\.vscode/**)",
       "Read(/C:\\Users\\nulsenb\\OneDrive - Grantek\\Documents\\cartographer/**)",
-      "Bash(move:*)"
+      "Bash(move:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

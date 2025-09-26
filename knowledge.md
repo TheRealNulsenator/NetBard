@@ -212,6 +212,53 @@ cartographer/
 - User requested creation of knowledge.md for context persistence
 - User clarified this is for MY context, not documentation
 
+## Planned Features (2025-09-17)
+### Priority Features for Industrial Network Investigation
+- **MAC OUI Lookup** (HIGH PRIORITY)
+  - Parse MAC addresses from ARP tables, switch CAM tables, or direct input
+  - Embedded OUI database focusing on industrial vendors (Siemens, Rockwell, Schneider, Phoenix Contact)
+  - Integrate with SubnetScanner to enrich ping results
+  - Implementation: New `OUILookup` class as vToolCommand
+
+- **Port Scanner** (HIGH PRIORITY)
+  - TCP connect() scanning and UDP probing
+  - Support single host or subnet range
+  - Focus on industrial protocols:
+    - Modbus TCP: 502
+    - EtherNet/IP: 44818, 2222
+    - OPC UA: 4840, 4843
+    - Siemens S7: 102
+    - BACnet: 47808
+    - DNP3: 20000
+    - IEC 61850: 102
+    - MQTT: 1883, 8883
+    - HTTP/HTTPS: 80, 443, 8080
+    - SNMP: 161
+  - Service identification via banner grabbing
+  - Implementation: New `PortScanner` class as vToolCommand with thread pool
+
+- **OPC UA Discovery & Browsing** (HIGH PRIORITY)
+  - Discovery protocol implementation on ports 4840, 4843
+  - List endpoints with security policies
+  - Browse server namespace and node hierarchies
+  - Export tag lists for documentation
+  - Implementation: New `OPCExplorer` class as vToolCommand
+  - Consider open62541 or FreeOpcUa library for full features
+
+### Future Considerations
+- **SQLite Database Integration** (2025-09-25)
+  - Move port definitions and descriptions from hardcoded maps to SQLite
+  - Store OUI vendor database for MAC address lookups
+  - Benefits: Easier updates, user customization, persistent scan results
+  - Could store: port lists, OUI data, scan history, device inventory
+- Device fingerprinting and classification
+- Modbus scanner with Function Code 43 device ID
+- Configuration backup tool for switches/routers
+- Network topology mapping (CDP/LLDP)
+- Guided discovery mode for junior engineers
+- Report generation (PDF/HTML)
+- Industrial protocol support (EtherNet/IP, BACnet, S7)
+
 ## Ongoing Work
 - 🔧 Multi-Session SSH Architecture (2025-09-12)
   - **Decision**: Implement concurrent SSH sessions with session switching

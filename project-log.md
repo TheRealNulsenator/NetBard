@@ -9,6 +9,24 @@
 
 ## Design Decisions
 
+### 2025-09-25: Major Refactoring - Scanner Naming and Commands
+- **Changes Made**:
+  - Renamed `PortScanner` → `TCPScanner` (more descriptive of actual functionality)
+  - Renamed `SubnetScanner` → `PingScanner` (clearer purpose)
+  - Changed command `portscan` → `tcp` (shorter, clearer)
+  - Changed command `scan` → `ping` (matches tool purpose)
+- **Command Processing Enhancement**:
+  - Added lowercase conversion in CommandDispatcher
+  - All commands now case-insensitive (TCP, Tcp, tcp all work)
+- **Port Database Design**:
+  - Created comprehensive industrial port list (45+ ports)
+  - Added port descriptions map for service identification
+  - Future plan: Move to SQLite for easier updates and OUI lookup integration
+- **Rationale**:
+  - Commands now clearly indicate their function
+  - Case-insensitive commands improve user experience
+  - Better naming conventions for long-term maintainability
+
 ### 2025-09-05: Code Polish/Cleanup Process
 - **Decision**: Established systematic cleanup checklist
 - **Trigger**: User says "cleanup" or "polish"
@@ -896,5 +914,66 @@ while(!libssh2_channel_eof(channel)){
 - Non-blocking reads prevent UI freezing
 - Prompt detection handles various shell types (>, #, $, %)
 - Clean channel cleanup on disconnect
+
+### 2025-09-17: Feature Planning Session - Industrial Network Investigation Tools
+**Time Spent:** ~45 minutes brainstorming and planning
+**Context:** User is an expert industrial network investigator needing tools for unraveling network messes and supporting junior engineers
+
+#### Identified Priority Features
+
+**1. MAC OUI Lookup**
+- **Purpose**: Identify device manufacturers from MAC addresses
+- **Use Case**: Quick vendor identification during network discovery
+- **Implementation Plan**:
+  - Create `OUILookup` class as vToolCommand
+  - Embed IEEE OUI database subset (focus on industrial vendors)
+  - Parse MACs from ARP tables, switch outputs, or direct input
+  - Integrate with SubnetScanner for enriched results
+
+**2. Port Scanner (TCP/UDP)**
+- **Purpose**: Discover all services running on network devices
+- **Use Case**: Identify industrial protocols and services
+- **Key Ports to Scan**:
+  - Industrial: Modbus (502), EtherNet/IP (44818), OPC UA (4840), S7 (102), BACnet (47808)
+  - Standard: SSH (22), HTTP (80/443), SNMP (161), FTP (21)
+- **Implementation Plan**:
+  - Create `PortScanner` class as vToolCommand
+  - TCP connect() scanning and UDP probing
+  - Thread pool for parallel scanning (similar to SubnetScanner)
+  - Banner grabbing for service identification
+
+**3. OPC UA Discovery & Browsing**
+- **Purpose**: Discover and browse OPC UA servers in SCADA systems
+- **Use Case**: Document SCADA tags and server configurations
+- **Implementation Plan**:
+  - Create `OPCExplorer` class as vToolCommand
+  - Discovery protocol on ports 4840/4843
+  - Browse server namespaces
+  - Export tag lists for documentation
+  - Consider open62541 library for full implementation
+
+#### Integration Strategy
+Features designed to work together:
+- Subnet scan → MAC OUI lookup → Port scan → Protocol-specific tools
+- All tools inherit from vToolCommand for consistent logging
+- Results exportable for remote analysis
+
+#### Other Valuable Features Discussed
+- Device fingerprinting and classification
+- Modbus scanner with device identification
+- Configuration backup tool
+- Network topology mapping (CDP/LLDP)
+- Guided discovery mode for junior engineers
+- Professional report generation
+- Industrial protocol support (EtherNet/IP, BACnet, S7)
+- Security assessment tools
+- Session recording and replay
+
+#### Rationale for Priorities
+1. **Port Scanner**: Most immediately useful for understanding network services
+2. **MAC OUI**: Quick win that enhances existing scanner
+3. **OPC UA**: High value for SCADA/HMI systems common in industrial environments
+
+These features directly support the core mission: helping expert investigators unravel network messes and enabling junior engineers to collect useful diagnostic data.
 
 *Last Updated: 2025-09-17 - Document maintained for human-readable project history and decisions*

@@ -1,0 +1,80 @@
+Connected to 10.106.15.150 as admin
+terminal length 0
+GTCLESW12>show interface status
+
+Port      Name               Status       Vlan       Duplex  Speed Type 
+Fa1/1                        notconnect   1            auto   auto 10/100BaseTX
+Fa1/2                        notconnect   1            auto   auto 10/100BaseTX
+Fa1/3                        connected    1          a-full  a-100 10/100BaseTX
+Fa1/4                        connected    1          a-full  a-100 10/100BaseTX
+Fa1/5                        notconnect   1            auto   auto 10/100BaseTX
+Fa1/6                        notconnect   1            auto   auto 10/100BaseTX
+Fa1/7                        notconnect   1            auto   auto 10/100BaseTX
+Fa1/8                        notconnect   1            auto   auto 10/100BaseTX
+Fa1/9                        notconnect   1            auto   auto 10/100BaseTX
+Fa1/10                       notconnect   1            auto   auto 10/100BaseTX
+Fa1/11                       notconnect   1            auto   auto 10/100BaseTX
+Fa1/12                       notconnect   1            auto   auto 10/100BaseTX
+Fa1/13                       notconnect   1            auto   auto 10/100BaseTX
+Fa1/14                       notconnect   1            auto   auto 10/100BaseTX
+Fa1/15                       notconnect   1            auto   auto 10/100BaseTX
+Fa1/16                       notconnect   1            auto   auto 10/100BaseTX
+Fa1/17                       notconnect   1            full    100 Not Present
+Fa1/18                       notconnect   1            full    100 Not Present
+Gi1/1                        connected    1          a-full a-1000 10/100/1000BaseTX
+Gi1/2                        notconnect   1            auto   auto Not Present
+GTCLESW12>show cdp neighbors
+Capability Codes: R - Router, T - Trans Bridge, B - Source Route Bridge
+                  S - Switch, H - Host, I - IGMP, r - Repeater, P - Phone, 
+                  D - Remote, C - CVTA, M - Two-port Mac Relay 
+
+Device ID        Local Intrfce     Holdtme    Capability  Platform  Port ID
+CN0H784T2829844M0127A01
+                 Fas 1/3           156               R    N3048     Gi3/0/13
+
+Total cdp entries displayed : 1
+GTCLESW12>sh mac address-table
+          Mac Address Table
+-------------------------------------------
+
+Vlan    Mac Address       Type        Ports
+----    -----------       --------    -----
+ All    0100.0ccc.cccc    STATIC      CPU
+ All    0100.0ccc.cccd    STATIC      CPU
+ All    0100.0ccd.cddc    STATIC      CPU
+ All    0121.6c00.0001    STATIC      CPU
+ All    0121.6c00.0002    STATIC      CPU
+ All    0121.6c00.0003    STATIC      CPU
+ All    0121.6c00.0004    STATIC      CPU
+ All    0121.6c00.0005    STATIC      CPU
+ All    0180.c200.0000    STATIC      CPU
+ All    0180.c200.0001    STATIC      CPU
+ All    0180.c200.0002    STATIC      CPU
+ All    0180.c200.0003    STATIC      CPU
+ All    0180.c200.0004    STATIC      CPU
+ All    0180.c200.0005    STATIC      CPU
+ All    0180.c200.0006    STATIC      CPU
+ All    0180.c200.0007    STATIC      CPU
+ All    0180.c200.0008    STATIC      CPU
+ All    0180.c200.0009    STATIC      CPU
+ All    0180.c200.000a    STATIC      CPU
+ All    0180.c200.000b    STATIC      CPU
+ All    0180.c200.000c    STATIC      CPU
+ All    0180.c200.000d    STATIC      CPU
+ All    0180.c200.000e    STATIC      CPU
+ All    0180.c200.000f    STATIC      CPU
+ All    0180.c200.0010    STATIC      CPU
+ All    ffff.ffff.ffff    STATIC      CPU
+   1    0000.bc5e.70a9    DYNAMIC     Fa1/3
+   1    000d.8000.1389    DYNAMIC     Fa1/3
+   1    001d.9cd7.8e65    DYNAMIC     Fa1/3
+   1    001d.9cd7.cdb8    DYNAMIC     Fa1/3
+   1    001d.9cd7.ce51    DYNAMIC     Gi1/1
+   1    5c26.0ab6.fdaf    DYNAMIC     Fa1/3
+   1    f454.339e.0d25    DYNAMIC     Fa1/4
+   1    f454.339e.f530    DYNAMIC     Fa1/3
+   1    f8b1.5639.cbb3    DYNAMIC     Fa1/3
+   1    f8b1.5639.cbb4    DYNAMIC     Fa1/3
+Total Mac Addresses for this criterion: 36
+GTCLESW12>exit
+Disconnected
