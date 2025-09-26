@@ -23,6 +23,8 @@ g++ -g -I./include -IC:/msys64/mingw64/include main.cpp src/CommandDispatcher.cp
 The codebase uses a Curiously Recurring Template Pattern (CRTP) for tool commands. This provides:
 - Singleton pattern enforcement via `getInstance()`
 - Automatic command registration with CommandDispatcher on first access
+- Two-phase command execution: `validateInput()` then `handleCommand()`
+- Input validation prevents log file creation for invalid commands
 - Integrated per-command logging to `logs/YYYYMMDD/command_details_HHMMSS.txt`
 - Compile-time polymorphism with runtime dispatch
 
@@ -30,11 +32,11 @@ The codebase uses a Curiously Recurring Template Pattern (CRTP) for tool command
 1. **main.cpp** initializes Winsock once for the entire program (WSAStartup/WSACleanup)
 2. **InputHandler** singleton starts a detached thread that runs for process lifetime, collecting user input into a thread-safe queue
 3. **CommandDispatcher** static class manages all command routing - initialized once, then accessed statically
-4. Tool commands (SecureShell, SubnetScanner) auto-register when their `getInstance()` is called
+4. Tool commands (SecureShell, PingScanner, TCPScanner) auto-register when their `getInstance()` is called
 
 ### Threading Architecture
 - **InputHandler**: Dedicated input thread with mutex-protected command queue
-- **SubnetScanner**: Uses work-stealing thread pool pattern (100 threads, atomic work distribution)
+- **PingScanner**: Uses work-stealing thread pool pattern (100 threads, atomic work distribution)
 - **SecureShell**: Interactive shell mode with non-blocking reads and InputHandler integration
 
 ### Key Architectural Decisions
@@ -46,11 +48,12 @@ The codebase uses a Curiously Recurring Template Pattern (CRTP) for tool command
 
 ## Available Commands
 
-The application provides these built-in commands:
+The application provides these built-in commands (case-insensitive):
 - `help` - List all registered commands
 - `quit`/`exit` - Exit the program
 - `ssh <host> <user> <pass>` - Open interactive SSH session
-- `scan <cidr>` - Scan subnet for active hosts (e.g., `scan 192.168.1.0/24`)
+- `ping <cidr>` - Ping sweep subnet for active hosts (e.g., `ping 192.168.1.0/24`)
+- `tcp <ip>` - Scan TCP ports on target (e.g., `tcp 192.168.1.100`)
 
 ## Code Conventions
 

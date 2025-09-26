@@ -1,5 +1,6 @@
 
 #include "TCPScanner.h"
+#include "netUtil.h"
 #include <iostream>
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -128,13 +129,25 @@ std::map<int, std::string> TCPScanner::Port_Descriptions = {
 
 TCPScanner::TCPScanner() {}
 
-// Handle command implementation
-void TCPScanner::handleCommand(const std::vector<std::string>& arguments) {
+
+bool TCPScanner::validateInput(const std::vector<std::string>& arguments) {
     if (arguments.size() < 1) {
         std::cout << "Usage: tcp <ip_address>" << std::endl;
-        return;
+        return false;
     }
 
+    const std::string& ip_address = arguments[0];
+    if (!netUtil::isValidIPv4(ip_address)) {
+        std::cout << "Invalid IP address format" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+// Handle command implementation
+void TCPScanner::handleCommand(const std::vector<std::string>& arguments) {
+    // Input already validated by validateInput()
     std::string target_ip = arguments[0];
     std::cout << "Scanning ports on " << target_ip << std::endl;
 

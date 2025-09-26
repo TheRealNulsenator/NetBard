@@ -1,0 +1,5 @@
+Scanning ports on 10.106.15.150
+  Port 80 OPEN - HTTP Web Server
+  Port 443 OPEN - HTTPS Secure Web Server
+  Port 44818 OPEN - EtherNet/IP Explicit Messaging
+  Port 22 OPEN - SSH Secure Shell

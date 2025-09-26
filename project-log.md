@@ -9,6 +9,20 @@
 
 ## Design Decisions
 
+### 2025-09-25: Input Validation Architecture
+- **Design Pattern**: Two-phase command execution in vToolCommand
+- **Implementation**:
+  - Added virtual `validateInput()` method - returns bool
+  - Validation runs before `handleCommand()` execution
+  - Logging only starts if validation passes
+- **Benefits**:
+  - Cleaner separation of validation and business logic
+  - No log files created for invalid commands
+  - Commands can pre-parse and store data during validation
+  - Reduces duplicate parsing/validation code
+- **Example**: PingScanner parses CIDR in validateInput(), stores in m_cidr_parts
+- **Future**: Decorator pattern opportunity for cross-cutting concerns
+
 ### 2025-09-25: Major Refactoring - Scanner Naming and Commands
 - **Changes Made**:
   - Renamed `PortScanner` → `TCPScanner` (more descriptive of actual functionality)

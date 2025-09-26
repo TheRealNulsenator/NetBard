@@ -57,17 +57,22 @@ cartographer/
 - **main.cpp**: Creates all components, registers command handlers, runs main loop
   - **Initializes Winsock once for entire program** (WSAStartup/WSACleanup)
   - Gets singleton instances of InputHandler and CommandDispatcher
-  - Gets singleton instances of SecureShell and SubnetScanner (both via getInstance())
+  - Gets singleton instances of SecureShell, PingScanner, and TCPScanner (via getInstance())
   - Auto-registration happens on getInstance() calls for tool commands
 - **vToolCommand**: CRTP base template for tool commands
   - Provides singleton pattern via getInstance()
   - Auto-registers commands with CommandDispatcher on first use
   - Uses static constexpr for command metadata (COMMAND_PHRASE, COMMAND_TIP)
-  - Virtual handleCommand() for runtime polymorphism (void return)
+  - **Two-phase command execution** (2025-09-25):
+    - Virtual validateInput() for input validation (bool return)
+    - Virtual handleCommand() for command execution (void return)
+    - Validation runs first, command only executes if validation passes
+    - Prevents log file creation for invalid commands
   - Enforces design contract at compile time via template instantiation
   - Protected save_results() method for file output (bare bones implementation)
   - **Integrated logging**: Each tool command automatically logs to file
     - Creates LogStreambuf instance per command type
+    - Only starts logging if validateInput() passes
     - Wraps handleCommand() with startLogging/stopLogging
     - Log files: `logs/YYYYMMDD/command_details_HHMMSS.txt`
     - Built-in commands (help/quit/exit) are NOT logged

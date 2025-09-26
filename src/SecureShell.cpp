@@ -6,6 +6,7 @@
 #include <libssh2.h>
 #include <thread>
 #include <chrono>
+#include <netUtil.h>
 
 const std::vector<std::string> SecureShell::DISCOVERY_COMMANDS = {
     "terminal length 0",                       // Return full output of all subsequent commands without dialogue
@@ -25,15 +26,28 @@ SecureShell::~SecureShell() {
     libssh2_exit(); //de-allocate libssh2
 }
 
-void SecureShell::handleCommand(const std::vector<std::string>& arguments) {
+
+bool SecureShell::validateInput(const std::vector<std::string>& arguments){
     if (arguments.size() < 3) {
         std::cout << "Usage: ssh <hostname> <username> <password>" << std::endl;
-        return;
+        return false;
     }
+
+    const std::string& ip_address = arguments[0];
+    if (!netUtil::isValidIPv4(ip_address)) {
+        std::cout << "Invalid IP address format" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+void SecureShell::handleCommand(const std::vector<std::string>& arguments) {
+
     std::string hostname = arguments[0];
     std::string username = arguments[1];
     std::string password = arguments[2];   
-    if (connect(hostname, username, password)) {    // Execute all discovery commands using shell mode
+    if (connect(hostname, username, password)) {   //establish connection
         interactShell(); //blocking operation, returns once shell is naturally closed or error occurs
         disconnect();
     }
@@ -84,6 +98,7 @@ bool SecureShell::connect(  const std::string& hostname,
     return true;
 }
 
+
 std::string SecureShell::execute(const std::string& command) {
     if (!m_connected) {
         return "Error: Not connected";
@@ -112,6 +127,7 @@ std::string SecureShell::execute(const std::string& command) {
 
     return result;
 }
+
 
 void SecureShell::interactShell() {
     if (!m_connected) {
