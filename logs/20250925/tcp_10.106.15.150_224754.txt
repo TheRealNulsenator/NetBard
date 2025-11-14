@@ -1,3 +1,0 @@
-Scanning ports on 10.106.15.130
-  Port 80 OPEN - HTTP Web Server
-  Port 44818 OPEN - EtherNet/IP Explicit Messaging

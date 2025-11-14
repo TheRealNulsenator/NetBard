@@ -1,6 +1,0 @@
-Network:      00001010011010100000111100000001
-Mask:         11111111111111111111111111111111
-Broadcast:    00001010011010100000111100000001
-Unique addresses: 0
-Scanning 10.106.15.1 via Ping...
-Scan complete. Found 0 alive hosts out of 0 scanned.

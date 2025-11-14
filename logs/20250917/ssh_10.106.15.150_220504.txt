@@ -1,3 +1,0 @@
-Connected to 10.106.15.150 as admin
-exit
-Disconnected
