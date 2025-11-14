@@ -1,0 +1,2 @@
+Pinging host: 8.8.8.8
+Responded!

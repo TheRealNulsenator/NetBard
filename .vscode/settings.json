@@ -73,6 +73,7 @@
         "bitset": "cpp",
         "semaphore": "cpp",
         "fstream": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "numeric": "cpp"
     }
 }

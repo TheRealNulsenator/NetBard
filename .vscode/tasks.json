@@ -7,7 +7,7 @@
             "command": "g++",
             "args": [
                 "-g",
-                "-I${fileDirname}\\include",
+                "-I${workspaceFolder}\\include",
                 "-IC:\\msys64\\mingw64\\include",
                 "main.cpp",
                 "src\\CommandDispatcher.cpp",
@@ -20,10 +20,10 @@
                 "-lws2_32",
                 "-liphlpapi",
                 "-o",
-                "${fileDirname}\\cartographer.exe"
+                "${workspaceFolder}\\cartographer.exe"
             ],
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "${workspaceFolder}"
             },
             "problemMatcher": [
                 "$gcc"

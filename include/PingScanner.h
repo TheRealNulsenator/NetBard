@@ -9,6 +9,8 @@
 #include <windows.h>
 #include "vToolCommand.h"
 
+using namespace std;
+
 class PingScanner : public vToolCommand<PingScanner>{
 
 public:
@@ -36,7 +38,7 @@ private:
     std::vector<std::string> m_cidr_parts;
     std::vector<std::string> hosts;
     bool pingHost(const std::string& address, HANDLE icmp_handle);
-    bool scan_hosts();
+    void scan(uint32_t ip, uint32_t mask);
 
     PingScanner();
     friend class vToolCommand<PingScanner>; //needed to allow getInstance to work in parent class

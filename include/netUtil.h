@@ -80,7 +80,7 @@ namespace netUtil {
         const bool valid_octet_count = std::count(cidr.begin(), cidr.end(), '.') == EXPECTED_DOTS;
         const bool valid_mask_count = std::count(cidr.begin(), cidr.end(), '/') == 1 || std::count(cidr.begin(), cidr.end(), '\\') == 1;
         const bool valid_token_count = parts.size() == EXPECTED_TOKENS;
-        if(!(valid_octet_count && valid_mask_count && valid_token_count)){
+        if(!(valid_octet_count)){
             parts.clear();
         }
         return parts;

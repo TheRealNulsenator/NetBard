@@ -1,0 +1,350 @@
+Connected to 162.117.93.70 as grantek
+
+TLDO-S02-D-PLC line 4 
+
+
+
+TLDO-S02-D-PLC#terminal length 0
+TLDO-S02-D-PLC#show interface status
+
+Port      Name               Status       Vlan       Duplex  Speed Type 
+Gi1/0/1   S56-B-PLC-GI01     connected    trunk        full   1000 1000BaseLX SFP
+Gi1/0/2   S56-B-PLC-GI02     connected    trunk        full   1000 1000BaseLX SFP
+Gi1/0/3   S57-C-PLC-GI01     connected    trunk        full   1000 1000BaseLX SFP
+Gi1/0/4   S57-C-PLC-GI02     notconnect   1            auto   auto unknown
+Gi1/0/5   S58-E-PLC-GI01     connected    trunk        full   1000 1000BaseLX SFP
+Gi1/0/6   S58-E-PLC-GI02     connected    trunk        full   1000 1000BaseLX SFP
+Gi1/0/7   S59-F-PLC-GI02     connected    trunk        full   1000 1000BaseLX SFP
+Gi1/0/8   S59-F-PLC-GI01     notconnect   1            full   1000 1000BaseLX SFP
+Gi1/0/9   S57-C-PLC-GI02     connected    trunk        full   1000 1000BaseLX SFP
+Gi1/0/10  To_Firewall_Redund notconnect   300          auto   auto unknown
+Gi1/0/11                     notconnect   1            auto   auto unknown
+Gi1/0/12                     notconnect   1            auto   auto unknown
+Gi1/0/13                     notconnect   1            auto   auto unknown
+Gi1/0/14                     notconnect   1            auto   auto unknown
+Gi1/0/15                     notconnect   1            auto   auto unknown
+Gi1/0/16                     notconnect   1            auto   auto unknown
+Gi1/0/17  ACCESS_300         notconnect   300          auto   auto unknown
+Gi1/0/18  To_Firewall        connected    300        a-full a-1000 10/100/1000BaseTX SFP
+Gi1/0/19  ToNewIDC           connected    trunk        full   1000 1000BaseSX SFP
+Gi1/0/20  ToNewIDC           connected    trunk        full   1000 1000BaseSX SFP
+Gi1/0/21  S04-D-PLC-GI01     connected    trunk        full   1000 1000BaseLX SFP
+Gi1/0/22  S04-D-PLC-GI01     connected    trunk        full   1000 1000BaseLX SFP
+Gi1/0/23  Armis-DMZ          notconnect   800          auto   auto 10/100/1000BaseTX SFP
+Gi1/0/24  SPAN_Port          notconnect   1            auto   auto 10/100/1000BaseTX SFP
+Gi1/1/1                      notconnect   1            auto   auto unknown
+Gi1/1/2                      notconnect   1            auto   auto unknown
+Gi1/1/3                      notconnect   1            auto   auto unknown
+Gi1/1/4                      notconnect   1            auto   auto unknown
+Po1                          connected    trunk      a-full a-1000 
+Po2       TLDO-S57-C-PLC     connected    trunk      a-full a-1000 
+Po3       TLDO-S58-E-PLC     connected    trunk      a-full a-1000 
+Po4       TLDO-S59-F-PLC     connected    trunk      a-full a-1000 
+Po5                          connected    trunk      a-full a-1000 
+Po6       ToNewIDC           connected    trunk      a-full a-1000 
+TLDO-S02-D-PLC#show cdp neighbors
+Capability Codes: R - Router, T - Trans Bridge, B - Source Route Bridge
+                  S - Switch, H - Host, I - IGMP, r - Repeater, P - Phone, 
+                  D - Remote, C - CVTA, M - Two-port Mac Relay 
+
+Device ID        Local Intrfce     Holdtme    Capability  Platform  Port ID
+USTOLFNDSW01.USTOLF.mdlz
+                 Gig 1/0/20        144              S I   WS-C3850- Ten 2/0/24
+USTOLFNDSW01.USTOLF.mdlz
+                 Gig 1/0/19        171              S I   WS-C3850- Ten 1/0/24
+TLDO-S58-E-PLC.kraft.com
+                 Gig 1/0/6         144              S I   WS-C2960X Gig 1/0/50
+TLDO-S58-E-PLC.kraft.com
+                 Gig 1/0/5         144              S I   WS-C2960X Gig 1/0/49
+TLDO-S04-D-PLC   Gig 1/0/21        171              S I   WS-C2960X Gig 1/0/50
+TLDO-S04-D-PLC   Gig 1/0/22        139              S I   WS-C2960X Gig 1/0/49
+TLDO-S59-F-PLC.kraft.com
+                 Gig 1/0/7         138              S I   WS-C2960L Gig 0/50
+TLDO-S56-B-PLC.kraft.com
+                 Gig 1/0/1         126              S I   WS-C2960X Gig 1/0/50
+TLDO-S56-B-PLC.kraft.com
+                 Gig 1/0/2         167              S I   WS-C2960X Gig 1/0/49
+TLDO-S57-C-PLC.kraft.com
+                 Gig 1/0/9         138              S I   WS-C2960L Gig 0/50
+TLDO-S57-C-PLC.kraft.com
+                 Gig 1/0/3         132              S I   WS-C2960L Gig 0/49
+
+Total cdp entries displayed : 11
+TLDO-S02-D-PLC#show mac address-table
+          Mac Address Table
+-------------------------------------------
+
+Vlan    Mac Address       Type        Ports
+----    -----------       --------    -----
+ All    0100.0ccc.cccc    STATIC      CPU
+ All    0100.0ccc.cccd    STATIC      CPU
+ All    0180.c200.0000    STATIC      CPU
+ All    0180.c200.0001    STATIC      CPU
+ All    0180.c200.0002    STATIC      CPU
+ All    0180.c200.0003    STATIC      CPU
+ All    0180.c200.0004    STATIC      CPU
+ All    0180.c200.0005    STATIC      CPU
+ All    0180.c200.0006    STATIC      CPU
+ All    0180.c200.0007    STATIC      CPU
+ All    0180.c200.0008    STATIC      CPU
+ All    0180.c200.0009    STATIC      CPU
+ All    0180.c200.000a    STATIC      CPU
+ All    0180.c200.000b    STATIC      CPU
+ All    0180.c200.000c    STATIC      CPU
+ All    0180.c200.000d    STATIC      CPU
+ All    0180.c200.000e    STATIC      CPU
+ All    0180.c200.000f    STATIC      CPU
+ All    0180.c200.0010    STATIC      CPU
+ All    0180.c200.0021    STATIC      CPU
+ All    ffff.ffff.ffff    STATIC      CPU
+ 200    000c.291a.1633    DYNAMIC     Po6
+ 200    000c.2990.1302    DYNAMIC     Po6
+ 200    0050.5688.43a9    DYNAMIC     Po6
+ 200    0050.5688.9841    DYNAMIC     Po6
+ 200    5480.284f.1290    DYNAMIC     Po6
+ 200    5cba.2cd1.0397    DYNAMIC     Po6
+ 200    9cdc.71bb.e690    DYNAMIC     Po6
+ 200    9cdc.71bb.ed20    DYNAMIC     Po6
+ 200    9cdc.71bb.f3c0    DYNAMIC     Po6
+ 200    a0d3.c1c0.1b19    DYNAMIC     Po6
+ 200    b883.034d.5f7a    DYNAMIC     Po6
+ 200    b883.034d.7870    DYNAMIC     Po6
+ 200    b883.034d.7e22    DYNAMIC     Po6
+ 200    c4b3.6a6a.bce2    STATIC      Vl200 
+ 200    f403.43be.1640    DYNAMIC     Po6
+ 300    0000.bc2f.fc57    DYNAMIC     Po2
+ 300    0000.bc38.c570    DYNAMIC     Po1
+ 300    0000.bc62.99d7    DYNAMIC     Po2
+ 300    0000.bcc4.48b6    DYNAMIC     Po2
+ 300    0000.bccc.8eb4    DYNAMIC     Po2
+ 300    0000.bcd1.3062    DYNAMIC     Po1
+ 300    0002.0106.c407    DYNAMIC     Po2
+ 300    0002.010b.6ca7    DYNAMIC     Po2
+ 300    0002.010c.5284    DYNAMIC     Po2
+ 300    0009.0f09.000a    DYNAMIC     Gi1/0/18
+ 300    000f.7302.7c07    DYNAMIC     Po2
+ 300    000f.7302.a246    DYNAMIC     Po2
+ 300    000f.7302.ceac    DYNAMIC     Po2
+ 300    0017.2780.00ee    DYNAMIC     Po2
+ 300    0017.2780.00f2    DYNAMIC     Po2
+ 300    0017.2780.00fc    DYNAMIC     Po2
+ 300    001d.4102.0446    DYNAMIC     Po5
+ 300    001d.9cbd.de34    DYNAMIC     Po2
+ 300    001d.9cc3.af50    DYNAMIC     Po1
+ 300    001d.9ccc.15e2    DYNAMIC     Po3
+ 300    001d.9ccd.454d    DYNAMIC     Po5
+ 300    001d.9ccd.cca9    DYNAMIC     Po2
+ 300    001d.9ccd.e4ff    DYNAMIC     Po2
+ 300    001d.9ce9.066f    DYNAMIC     Po5
+ 300    0021.79d0.dc87    DYNAMIC     Po2
+ 300    0021.79d0.ddc0    DYNAMIC     Po3
+ 300    0021.79d1.3bc6    DYNAMIC     Po3
+ 300    0022.4dd7.faee    DYNAMIC     Po5
+ 300    0022.4dd7.fdfe    DYNAMIC     Po2
+ 300    0022.4dd7.fe7a    DYNAMIC     Po5
+ 300    0022.4dd7.fe84    DYNAMIC     Po5
+ 300    0022.4dd7.fe9e    DYNAMIC     Po2
+ 300    0022.4dd7.fea8    DYNAMIC     Po5
+ 300    0022.4dd7.feb8    DYNAMIC     Po3
+ 300    0026.2d04.6e39    DYNAMIC     Po5
+ 300    0030.1129.530a    DYNAMIC     Po3
+ 300    0030.1129.530e    DYNAMIC     Po3
+ 300    0030.114c.44f7    DYNAMIC     Po1
+ 300    0030.1160.b6ab    DYNAMIC     Po3
+ 300    0030.1806.b5fd    DYNAMIC     Po2
+ 300    0030.1806.b811    DYNAMIC     Po5
+ 300    0030.1806.b815    DYNAMIC     Po1
+ 300    0030.180a.1993    DYNAMIC     Po2
+ 300    0030.180a.19b1    DYNAMIC     Po3
+ 300    0030.180a.19ff    DYNAMIC     Po5
+ 300    0030.180a.1a9d    DYNAMIC     Po2
+ 300    0030.180a.1add    DYNAMIC     Po3
+ 300    0050.5688.0404    DYNAMIC     Po6
+ 300    0050.5688.05c0    DYNAMIC     Po6
+ 300    0050.5688.0932    DYNAMIC     Po6
+ 300    0050.5688.0964    DYNAMIC     Po6
+ 300    0050.5688.0a90    DYNAMIC     Po6
+ 300    0050.5688.1700    DYNAMIC     Po6
+ 300    0050.5688.19b9    DYNAMIC     Po6
+ 300    0050.5688.1f19    DYNAMIC     Po6
+ 300    0050.5688.2993    DYNAMIC     Po6
+ 300    0050.5688.31e9    DYNAMIC     Po6
+ 300    0050.5688.3f4d    DYNAMIC     Po6
+ 300    0050.5688.471f    DYNAMIC     Po6
+ 300    0050.5688.4828    DYNAMIC     Po6
+ 300    0050.5688.5106    DYNAMIC     Po6
+ 300    0050.5688.6132    DYNAMIC     Po6
+ 300    0050.5688.6e7a    DYNAMIC     Po6
+ 300    0050.5688.7ff4    DYNAMIC     Po6
+ 300    0050.5688.84f1    DYNAMIC     Po6
+ 300    0050.5688.86af    DYNAMIC     Po6
+ 300    0050.5688.86ff    DYNAMIC     Po6
+ 300    0050.5688.886d    DYNAMIC     Po6
+ 300    0050.5688.8b39    DYNAMIC     Po6
+ 300    0050.5688.9960    DYNAMIC     Po6
+ 300    0050.5688.999c    DYNAMIC     Po6
+ 300    0050.5688.a053    DYNAMIC     Po6
+ 300    0050.5688.b0f1    DYNAMIC     Po6
+ 300    0050.5688.c360    DYNAMIC     Po6
+ 300    0050.5688.c5d6    DYNAMIC     Po6
+ 300    0050.5688.c608    DYNAMIC     Po6
+ 300    0050.5688.dbb8    DYNAMIC     Po6
+ 300    0050.5688.e617    DYNAMIC     Po6
+ 300    0050.5688.e8c3    DYNAMIC     Po6
+ 300    0050.5688.e996    DYNAMIC     Po6
+ 300    0050.56ac.70e1    DYNAMIC     Po6
+ 300    0050.56ac.aaab    DYNAMIC     Po6
+ 300    0050.56b6.05af    DYNAMIC     Po6
+ 300    0050.56b6.0c95    DYNAMIC     Po6
+ 300    0050.56b6.0ee4    DYNAMIC     Po6
+ 300    0050.56b6.6325    DYNAMIC     Po6
+ 300    0050.56b6.6f42    DYNAMIC     Po6
+ 300    0050.56b6.7618    DYNAMIC     Po6
+ 300    0050.56b6.7d22    DYNAMIC     Po6
+ 300    0077.8d52.fbc1    DYNAMIC     Po1
+ 300    0087.6490.2943    DYNAMIC     Po5
+ 300    0861.95d7.fc90    DYNAMIC     Po2
+ 300    0861.95da.c85f    DYNAMIC     Po5
+ 300    0861.95e3.16ba    DYNAMIC     Po3
+ 300    0861.95e9.a50c    DYNAMIC     Po4
+ 300    34c0.f94e.8241    DYNAMIC     Po2
+ 300    34c0.f997.b0c1    DYNAMIC     Po3
+ 300    4041.012f.14c1    DYNAMIC     Po2
+ 300    4041.013b.b742    DYNAMIC     Po2
+ 300    4041.0181.14c2    DYNAMIC     Po4
+ 300    4041.0181.e7c2    DYNAMIC     Po1
+ 300    4041.0181.f041    DYNAMIC     Po3
+ 300    4041.0181.fe42    DYNAMIC     Po2
+ 300    4c38.d525.05e6    DYNAMIC     Po5
+ 300    4c38.d525.3506    DYNAMIC     Po5
+ 300    5c21.672c.8401    DYNAMIC     Po5
+ 300    5c21.672c.8441    DYNAMIC     Po5
+ 300    5c88.16b6.84a7    DYNAMIC     Po3
+ 300    5c88.16bd.07d4    DYNAMIC     Po5
+ 300    68c8.eb1e.6de1    DYNAMIC     Po2
+ 300    68c8.eb1e.6df5    DYNAMIC     Po2
+ 300    68c8.ebd8.6842    DYNAMIC     Po3
+ 300    68c8.ebfa.3998    DYNAMIC     Po3
+ 300    6c5e.3b76.84c1    DYNAMIC     Po2
+ 300    6c5e.3b95.7241    DYNAMIC     Po4
+ 300    6c99.8996.6fc1    DYNAMIC     Po3
+ 300    9c6b.0098.718a    DYNAMIC     Po3
+ 300    c4b3.6a6a.bcc7    STATIC      Vl300 
+ 300    e490.6900.33c2    DYNAMIC     Po3
+ 300    e490.69a0.421e    DYNAMIC     Po5
+ 300    f454.3353.b97d    DYNAMIC     Po3
+ 300    f454.3353.b982    DYNAMIC     Po2
+ 300    f454.3353.b9be    DYNAMIC     Po1
+ 300    f454.3353.bfbd    DYNAMIC     Po2
+ 300    f454.3353.d111    DYNAMIC     Po2
+ 300    f454.3380.d24f    DYNAMIC     Po2
+ 305    00b1.e386.39fa    DYNAMIC     Po6
+ 305    c4b3.6a6a.bcfa    STATIC      Vl305 
+ 306    0050.5688.8ca7    DYNAMIC     Po6
+ 306    0050.5688.b4b3    DYNAMIC     Po6
+ 306    0050.5688.dca2    DYNAMIC     Po6
+ 306    c4b3.6a6a.bcc0    STATIC      Vl306 
+ 307    c4b3.6a6a.bce5    STATIC      Vl307 
+ 308    c4b3.6a6a.bcd4    STATIC      Vl308 
+ 800    0050.5688.0116    DYNAMIC     Po6
+ 800    0050.5688.21e1    DYNAMIC     Po6
+ 800    0050.5688.23f0    DYNAMIC     Po6
+ 800    0050.5688.280d    DYNAMIC     Po6
+ 800    0050.5688.309c    DYNAMIC     Po6
+ 800    0050.5688.346f    DYNAMIC     Po6
+ 800    0050.5688.5973    DYNAMIC     Po6
+ 800    0050.5688.5f0f    DYNAMIC     Po6
+ 800    0050.5688.6368    DYNAMIC     Po6
+ 800    0050.5688.77e4    DYNAMIC     Po6
+ 800    0050.5688.7836    DYNAMIC     Po6
+ 800    0050.5688.8b74    DYNAMIC     Po6
+ 800    0050.5688.a03d    DYNAMIC     Po6
+ 800    0050.5688.aaf5    DYNAMIC     Po6
+ 800    0050.5688.b89d    DYNAMIC     Po6
+ 800    0050.5688.c875    DYNAMIC     Po6
+ 800    0050.5688.e9c1    DYNAMIC     Po6
+ 800    0050.5688.f548    DYNAMIC     Po6
+ 800    0050.5688.fb0f    DYNAMIC     Po6
+ 800    c4b3.6a6a.bcd2    STATIC      Vl800 
+ 801    c4b3.6a6a.bcfe    STATIC      Vl801 
+ 900    0000.bc5e.4372    DYNAMIC     Po1
+ 900    0000.bc65.30a1    DYNAMIC     Po1
+ 900    0861.95d8.73d5    DYNAMIC     Po1
+ 900    0861.95d8.7422    DYNAMIC     Po2
+ 900    0861.95d8.74e9    DYNAMIC     Po1
+ 900    0861.95d8.77ad    DYNAMIC     Po1
+ 900    5c21.6748.43e4    DYNAMIC     Po1
+ 900    5c88.16d4.dda1    DYNAMIC     Po1
+ 900    5c88.16d4.ddc0    DYNAMIC     Po2
+ 900    c4b3.6a6a.bcc5    STATIC      Vl900 
+ 910    0010.52e5.6b36    DYNAMIC     Po5
+ 910    0010.52e5.6b46    DYNAMIC     Po5
+ 910    0010.52e5.6b4a    DYNAMIC     Po5
+ 910    0010.52e5.6bee    DYNAMIC     Po5
+ 910    0861.95d6.ec05    DYNAMIC     Po5
+ 910    4041.0181.1480    DYNAMIC     Po4
+ 910    4041.0181.1841    DYNAMIC     Po5
+ 910    5c88.16ea.fc39    DYNAMIC     Po5
+ 910    68c8.eb01.b475    DYNAMIC     Po5
+ 910    a410.b629.7c7e    DYNAMIC     Po3
+ 910    bcf4.9902.441e    DYNAMIC     Po5
+ 910    bcf4.9902.4807    DYNAMIC     Po2
+ 910    bcf4.9902.48a5    DYNAMIC     Po5
+ 910    bcf4.9902.48a6    DYNAMIC     Po5
+ 910    bcf4.9902.4933    DYNAMIC     Po5
+ 910    bcf4.9902.ab6f    DYNAMIC     Po5
+ 910    bcf4.9902.ab71    DYNAMIC     Po5
+ 910    bcf4.9902.ac51    DYNAMIC     Po2
+ 910    bcf4.9906.9903    DYNAMIC     Po5
+ 910    c4b3.6a6a.bcfe    STATIC      Vl910 
+ 985    0022.4dd7.fc78    DYNAMIC     Po4
+ 985    0026.2d04.6e38    DYNAMIC     Po5
+ 985    0030.1806.b7bd    DYNAMIC     Po3
+ 985    0030.180a.1ab1    DYNAMIC     Po5
+ 985    4c38.d525.34e4    DYNAMIC     Po5
+ 985    9c6b.005b.bb7c    DYNAMIC     Po4
+ 985    9c6b.005b.bb88    DYNAMIC     Po4
+ 985    9c6b.005b.bb95    DYNAMIC     Po4
+ 985    c4b3.6a6a.bcf6    STATIC      Vl985 
+ 998    c4b3.6a6a.bcc7    STATIC      Vl998 
+ 206    c4b3.6a6a.bcfa    STATIC      Vl206 
+ 911    000d.8000.1e2e    DYNAMIC     Po5
+ 911    001d.9cc3.0ab3    DYNAMIC     Po5
+ 911    001d.9cc5.f3e1    DYNAMIC     Po4
+ 911    4041.0181.1480    DYNAMIC     Po4
+ 911    5c21.6706.1941    DYNAMIC     Po3
+ 911    5c21.6719.d041    DYNAMIC     Po3
+ 911    5c21.6728.a841    DYNAMIC     Po3
+ 911    5c21.6728.aac1    DYNAMIC     Po3
+ 911    5c88.16dd.dae7    DYNAMIC     Po3
+ 911    5c88.16dd.dbd3    DYNAMIC     Po3
+ 911    5c88.16de.6dad    DYNAMIC     Po3
+ 911    c4b3.6a6a.bccc    STATIC      Vl911 
+ 911    f454.3384.6ea6    DYNAMIC     Po3
+ 911    f454.3384.6ef6    DYNAMIC     Po3
+ 913    0861.95d6.468c    DYNAMIC     Po2
+ 913    5c88.16c4.d6f2    DYNAMIC     Po3
+ 913    5c88.16c9.8c10    DYNAMIC     Po3
+ 913    5c88.16e4.c980    DYNAMIC     Po3
+ 913    bcf4.9902.4794    DYNAMIC     Po2
+ 913    bcf4.9902.48e9    DYNAMIC     Po2
+ 913    c4b3.6a6a.bce2    STATIC      Vl913 
+ 913    f454.3353.e431    DYNAMIC     Po2
+ 993    c4b3.6a6a.bcfa    STATIC      Vl993 
+  99    0050.5688.0a55    DYNAMIC     Po6
+  99    0050.5688.19a7    DYNAMIC     Po6
+  99    0050.5688.3c8c    DYNAMIC     Po6
+  99    0050.5688.7580    DYNAMIC     Po6
+  99    00b1.e386.3998    DYNAMIC     Po6
+  99    00b1.e386.5598    DYNAMIC     Po6
+ 999    0077.8d52.fbb1    DYNAMIC     Po1
+ 999    0077.8d52.fbb2    DYNAMIC     Po1
+ 999    0087.6490.2931    DYNAMIC     Po5
+ 999    0087.6490.2932    DYNAMIC     Po5
+ 999    6c5e.3b76.84b1    DYNAMIC     Po2
+ 999    6c5e.3b76.84b2    DYNAMIC     Po2
+ 999    6c5e.3b95.7232    DYNAMIC     Po4
+ 999    6c99.8996.6fb1    DYNAMIC     Po3
+ 999    6c99.8996.6fb2    DYNAMIC     Po3
+Total Mac Addresses for this criterion: 270
+TLDO-S02-D-PLC#

@@ -1,0 +1,2 @@
+Pinging host: 10.106.15.0
+Responded!

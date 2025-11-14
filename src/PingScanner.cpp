@@ -16,109 +16,69 @@
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
 
+using namespace std;
+
 PingScanner::PingScanner(){}
 
 
-bool PingScanner::validateInput(const std::vector<std::string>& arguments){
+bool PingScanner::validateInput(const vector<string>& arguments){
 
-    if(arguments.size() < 1){
+    if(arguments.size() == 0){
         return false;
     }
 
-    const std::string cidr = arguments[0];
+    const string cidr = arguments[0];
     m_cidr_parts = netUtil::parseCIDR(arguments[0]);
-    if(m_cidr_parts.size() != 5){
-        m_cidr_parts.clear();
-        return false;
+    if(m_cidr_parts.size() == 5){
+        return true;
+    }
+    else if(m_cidr_parts.size() == 4){
+        m_cidr_parts.push_back("32");
+        return true;
     }
 
-    return true;
+    m_cidr_parts.clear();
+    return false;
 }
 
-void PingScanner::handleCommand(const std::vector<std::string>& arguments) {
-
+void PingScanner::handleCommand(const vector<string>& arguments) {
+    
     uint32_t ip; //binary address built of extracted octets
-    if (!address_to_bits(m_cidr_parts, ip)) { std::cout << "Invalid Address" << std::endl; return;}
+    if (!address_to_bits(m_cidr_parts, ip)) { cout << "Invalid Address" << endl; return;}
         
     uint32_t mask; //extracts subnet mask shorthand into binary mask
-    if (!create_subnet_mask(m_cidr_parts.back(), mask)) { std::cout << "Invalid Subnet" << std::endl; return;}
+    if (!create_subnet_mask(m_cidr_parts.back(), mask)) { cout << "Invalid Subnet" << endl; return;}
 
-    const uint32_t network_address = ip & mask;
-    const uint32_t broadcast_address = ip | ~mask;
 
-    std::cout << "Network:      " << std::bitset<32>(network_address) << std::endl;
-    std::cout << "Mask:         " << std::bitset<32>(mask) << std::endl;
-    std::cout << "Broadcast:    " << std::bitset<32>(broadcast_address)  << std::endl;
-
-    Network_Address = bits_to_address(network_address);
-    Broadcast_Address = bits_to_address(broadcast_address);
-    Host_Addresses.clear();  // Clear previous scan results
-    for (uint32_t bit_address = network_address + 1; bit_address < broadcast_address; bit_address++){
-        std::string string_address = bits_to_address(bit_address);
-        Host_Addresses.push_back(string_address);
+    if(mask == UINT32_MAX){
+        string host_address = bits_to_address(ip);
+        cout << "Pinging host: " << host_address << endl;
+        HANDLE icmp_handle = IcmpCreateFile();  // create ICMP handle once for each thread
+        if (icmp_handle == INVALID_HANDLE_VALUE) {  //ICMP is stateful connection, handle=special file that stores connection state
+            cout << "Failed to create ICMP handle" << endl;
+            return;
+        } 
+        if(pingHost(host_address, icmp_handle)){
+            cout << "Responded!" << endl;
+        }
+        else{
+            cout << "No response." << endl;
+        }
     }
-
-    std::cout << "Unique addresses: " << Host_Addresses.size() << std::endl;
-    std::cout << "Scanning subnet " << Network_Address << " for hosts..." << std::endl;
-
-    Host_Statuses.clear(); //reset status keys
-
-    std::atomic<int> index_of_next_address_to_ping = 0; //atomic, so that threads dont try to access same index
-    std::vector<std::thread> threads;
-    std::mutex output_mutex; //dont try to all talk at once
-
-    const auto MAX_THREADS = 100;               //max concurrent pinging threads
-    const auto MS_BETWEEN_THREAD_SPAWNS = 10;   //small delay between thread spawns to protect old PLCs
-    for (int i = 0; i < MAX_THREADS; i++) {     //spawn all of our threads!
-        //uses emplace_back to avoid attempting thread copy operation
-        threads.emplace_back([&]() -> void {   
-            //used lambda because this is an over-engineered solution
-            HANDLE icmp_handle = IcmpCreateFile();  // create ICMP handle once for each thread
-            if (icmp_handle == INVALID_HANDLE_VALUE) {
-                std::cout << "Failed to create ICMP handle" << std::endl;
-                return;
-            } 
-            while (true) {  //keep scanning addresses until we have gotten them all
-                int my_index = index_of_next_address_to_ping.fetch_add(1); //ATOMIC fetch and increment
-                if (my_index >= Host_Addresses.size()) break;   //no more work           
-                std::string address = Host_Addresses[my_index];
-                bool pingable = pingHost(address, icmp_handle);
-                {   //CRITICAL SECTION that can block other threads from accessing this while we write status
-                    std::lock_guard<std::mutex> lock(output_mutex);
-                    if (pingable) {
-                        std::cout << address << std::endl;
-                    }
-                    Host_Statuses[address] = pingable;   
-                }  
-            }
-            IcmpCloseHandle(icmp_handle);    
-            //END OF LAMBDA
-        });
-        // Delay how quickly we spin up threads to avoid faulting old PLC processors with ping storm
-        std::this_thread::sleep_for(std::chrono::milliseconds(MS_BETWEEN_THREAD_SPAWNS));
+    else{
+        scan(ip, mask);
     }
-        
-    for (auto& thread : threads) {    // Wait for all threads to terminate
-        thread.join();
-    }
-
-    int alive_count = 0;
-    for (const auto& [address, is_alive] : Host_Statuses) {
-        if (is_alive) alive_count++;
-    }
-    
-    std::cout << "Scan complete. Found " << alive_count << " alive hosts out of " << Host_Addresses.size() << " scanned." << std::endl;
 }
 
 
-bool PingScanner::unwrap_cidr(const std::string& cidr, std::vector<std::string>& results)
+bool PingScanner::unwrap_cidr(const string& cidr, vector<string>& results)
 {
     results.clear();
-    const std::string delimiters = "./\\";
+    const string delimiters = "./\\";
     size_t start = 0;
     size_t end = cidr.find_first_of(delimiters);
     
-    while (end != std::string::npos) {  //keep going until we have checked the whole string for delimiters
+    while (end != string::npos) {  //keep going until we have checked the whole string for delimiters
         
         if (end != start) {             //handles edge cases where first character is a delimiter, or consecutive delimiters
             results.push_back(cidr.substr(start, end - start));
@@ -132,8 +92,8 @@ bool PingScanner::unwrap_cidr(const std::string& cidr, std::vector<std::string>&
     }
 
     const int EXPECTED_DOTS = 3;
-    const bool valid_octet_count = std::count(cidr.begin(), cidr.end(), '.') == EXPECTED_DOTS;
-    const bool valid_mask_count = std::count(cidr.begin(), cidr.end(), '/') == 1 || std::count(cidr.begin(), cidr.end(), '\\') == 1;
+    const bool valid_octet_count = count(cidr.begin(), cidr.end(), '.') == EXPECTED_DOTS;
+    const bool valid_mask_count = count(cidr.begin(), cidr.end(), '/') == 1 || count(cidr.begin(), cidr.end(), '\\') == 1;
     const size_t EXPECTED_TOKENS = 5;  // 4 octets + 1 mask
     const bool valid_token_count = results.size() == EXPECTED_TOKENS;
     //check for 4 total octets, and check for subnet with either forward or backslash
@@ -141,14 +101,14 @@ bool PingScanner::unwrap_cidr(const std::string& cidr, std::vector<std::string>&
 }
 
 
-bool PingScanner::address_to_bits(const std::vector<std::string>& octets, uint32_t& ip)
+bool PingScanner::address_to_bits(const vector<string>& octets, uint32_t& ip)
 {    
     ip = 0;  // Initialize the output parameter
     try {
 
         const int IPV4_OCTETS = 4;
         for (int i = 0; i < IPV4_OCTETS; i++) { //octets in a valid subnet. ignore anything else, like a dangling subnet mask
-            int octet = std::stoi(octets[i]);
+            int octet = stoi(octets[i]);
 
             const int MIN_OCTET = 0;
             const int MAX_OCTET = 255;
@@ -160,16 +120,16 @@ bool PingScanner::address_to_bits(const std::vector<std::string>& octets, uint32
         }
         return true;  // Success
 
-    } catch (const std::exception& e) { // Conversion failed
+    } catch (const exception& e) { // Conversion failed
         ip = 0; 
         return false;  
     }
 }
 
 
-std::string PingScanner::bits_to_address(const uint32_t ip)
+string PingScanner::bits_to_address(const uint32_t ip)
 {
-    std::stringstream ss; //shift for each octet!
+    stringstream ss; //shift for each octet!
     ss << ((ip >> 24) & 0xFF) << "."
        << ((ip >> 16) & 0xFF) << "."
        << ((ip >> 8) & 0xFF) << "."
@@ -178,10 +138,10 @@ std::string PingScanner::bits_to_address(const uint32_t ip)
 }
 
 
-bool PingScanner::create_subnet_mask(const std::string& subnet_mask, uint32_t& results) {
+bool PingScanner::create_subnet_mask(const string& subnet_mask, uint32_t& results) {
     int bits;
-    try { bits = std::stoi(subnet_mask);} //perform string to int conversion
-    catch(const std:: exception& e){ return false;}
+    try { bits = stoi(subnet_mask);} //perform string to int conversion
+    catch(const  exception& e){ return false;}
 
     const int MAX_SUBNET_BITS = 32;
     if (bits < 0 || bits > MAX_SUBNET_BITS) return false;    // Invalid input
@@ -191,7 +151,78 @@ bool PingScanner::create_subnet_mask(const std::string& subnet_mask, uint32_t& r
 }
 
 
-bool PingScanner::pingHost(const std::string& address, HANDLE icmp_handle)
+void PingScanner::scan(uint32_t ip, uint32_t mask){
+
+
+    const uint32_t network_address = ip & mask;
+    const uint32_t broadcast_address = ip | ~mask;
+
+    cout << "Network:      " << bitset<32>(network_address) << endl;
+    cout << "Mask:         " << bitset<32>(mask) << endl;
+    cout << "Broadcast:    " << bitset<32>(broadcast_address)  << endl;
+    Network_Address = bits_to_address(network_address);
+    Broadcast_Address = bits_to_address(broadcast_address);
+    Host_Addresses.clear();  // Clear previous scan results
+    for (uint32_t bit_address = network_address + 1; bit_address < broadcast_address; bit_address++){
+        string string_address = bits_to_address(bit_address);
+        Host_Addresses.push_back(string_address);
+    }
+
+    cout << "Unique addresses: " << Host_Addresses.size() << endl;
+    cout << "Scanning " << Network_Address << " via Ping..." << endl;
+
+    Host_Statuses.clear(); //reset status keys
+
+    atomic<int> index_of_next_address_to_ping = 0; //atomic, so that threads dont try to access same index
+    vector<thread> threads;
+    mutex output_mutex; //dont try to all talk at once
+
+    //workstealing thread pool to ping all the IPs
+    const auto MAX_THREADS = 100;               //max concurrent pinging threads
+    const auto MS_BETWEEN_THREAD_SPAWNS = 10;   //small delay between thread spawns to protect old PLCs
+    for (int i = 0; i < MAX_THREADS; i++) {     //spawn all of our threads!
+        //uses emplace_back to avoid attempting thread copy operation
+        threads.emplace_back([&]() -> void {  //used lambda because this is an over-engineered solution
+            HANDLE icmp_handle = IcmpCreateFile();  // create ICMP handle once for each thread
+            if (icmp_handle == INVALID_HANDLE_VALUE) {  //ICMP is stateful connection, handle=special file that stores connection state
+                cout << "Failed to create ICMP handle" << endl;
+                return;
+            } 
+            while (true) {  //keep scanning addresses until we have gotten them all and main program closes them all.
+                int my_index = index_of_next_address_to_ping.fetch_add(1); //ATOMIC fetch and increment (implicit mutex usage with minimized critical code section)
+                if (my_index >= Host_Addresses.size()) break;   //no more work           
+                string address = Host_Addresses[my_index];
+                bool pingable = pingHost(address, icmp_handle);
+                {   //CRITICAL SECTION that can block other threads from accessing this while we write status
+                    lock_guard<mutex> lock(output_mutex);
+                    if (pingable) {
+                        cout << address << endl;
+                    }
+                    Host_Statuses[address] = pingable;   
+                }  
+            }
+            IcmpCloseHandle(icmp_handle);    
+            //END OF LAMBDA
+        });
+        // Delay how quickly we spin up threads to avoid faulting old PLC processors with ping storm
+        this_thread::sleep_for(chrono::milliseconds(MS_BETWEEN_THREAD_SPAWNS));
+    }
+        
+    for (auto& thread : threads) {    // Wait for all threads to terminate
+        thread.join();
+    }
+
+    int alive_count = 0;
+    for (const auto& [address, is_alive] : Host_Statuses) {
+        if (is_alive) alive_count++;
+    }
+    
+    cout << "Scan complete. Found " << alive_count << " alive hosts out of " << Host_Addresses.size() << " scanned." << endl;
+
+
+}
+
+bool PingScanner::pingHost(const string& address, HANDLE icmp_handle)
 {
     const int PING_TIMEOUT_MS = 2000;
     const int MAX_PING_ATTEMPTS = 2;
@@ -214,7 +245,7 @@ bool PingScanner::pingHost(const std::string& address, HANDLE icmp_handle)
             return false;
         }
         
-        // std::cout << "pinging " << address << ", attempt " << ping_attempts << "\r" << std::flush;
+        // cout << "pinging " << address << ", attempt " << ping_attempts << "\r" << flush;
 
         // send ICMP echo request
         DWORD reply_count = IcmpSendEcho( //THIS IS A BLOCKING FUNCTION!
