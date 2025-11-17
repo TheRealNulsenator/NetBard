@@ -1,12 +1,15 @@
-#include "SecureShell.h"
-#include "InputHandler.h"
-#include <iostream>
-#include <ws2tcpip.h>
 #include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+
+#include "SecureShell.hpp"
+#include "InputHandler.hpp"
+#include <iostream>
 #include <libssh2.h>
 #include <thread>
 #include <chrono>
-#include <netUtil.h>
+#include <netUtil.hpp>
+
 
 const std::vector<std::string> SecureShell::DISCOVERY_COMMANDS = {
     "terminal length 0",                       // Return full output of all subsequent commands without dialogue
@@ -18,7 +21,7 @@ const std::vector<std::string> SecureShell::DISCOVERY_COMMANDS = {
 const std::vector<char> SecureShell::PROMPT_ENDINGS = {'>', '#', '$', '%'};
 
 SecureShell::SecureShell() : m_session(nullptr), m_socket(-1), m_connected(false) {
-    libssh2_init(0);    // Initialize libssh2 
+    libssh2_init(0);    // Initialize libssh2
 }
 
 SecureShell::~SecureShell() {
@@ -46,7 +49,7 @@ void SecureShell::handleCommand(const std::vector<std::string>& arguments) {
 
     std::string hostname = arguments[0];
     std::string username = arguments[1];
-    std::string password = arguments[2];   
+    std::string password = arguments[2];
     if (connect(hostname, username, password)) {   //establish connection
         interactShell(); //blocking operation, returns once shell is naturally closed or error occurs
         disconnect();
@@ -54,12 +57,12 @@ void SecureShell::handleCommand(const std::vector<std::string>& arguments) {
 
 }
 
-bool SecureShell::connect(  const std::string& hostname, 
-                            const std::string& username, 
-                            const std::string& password, 
+bool SecureShell::connect(  const std::string& hostname,
+                            const std::string& username,
+                            const std::string& password,
                             int port) {
     // Create socket
-    m_socket = socket(AF_INET, SOCK_STREAM, 0); 
+    m_socket = socket(AF_INET, SOCK_STREAM, 0);
     struct sockaddr_in sin; // "socket in"
     sin.sin_family = AF_INET;
     sin.sin_port = htons(port);
@@ -84,7 +87,7 @@ bool SecureShell::connect(  const std::string& hostname,
         libssh2_session_free(m_session);
         closesocket(m_socket);
         return false;
-    } 
+    }
     // Authenticate! will allow most crypto algos, which windows ssh.exe does not by default, forcing me to do allll of this
     if (libssh2_userauth_password(m_session, username.c_str(), password.c_str()) != 0) {
         std::cout << "Authentication failed" << std::endl;
@@ -111,7 +114,7 @@ std::string SecureShell::execute(const std::string& command) {
         libssh2_channel_free(channel);
         return "Error: Failed to execute command";
     }
-    
+
     // Read output
     std::string result;
     char buffer[256];
@@ -120,7 +123,7 @@ std::string SecureShell::execute(const std::string& command) {
         buffer[bytesRead] = '\0';
         result += buffer;
     }
-    
+
     // Close and wait for remote to acknowledge
     libssh2_channel_close(channel);
     libssh2_channel_free(channel);
@@ -141,7 +144,7 @@ void SecureShell::interactShell() {
         std::cout << "Error: Failed to request shell" << std::endl;
         libssh2_channel_free(channel);
     }
-    
+
     //FIRST we send all default commands
     libssh2_channel_set_blocking(channel, 0);    // Set non-blocking mode for reading
     char buffer[4096];  //we will use this buffer a lot in the loop below
@@ -151,7 +154,7 @@ void SecureShell::interactShell() {
     for (const auto& command : DISCOVERY_COMMANDS) {    // Execute each command
         cmd = command + "\n";
         libssh2_channel_write(channel, cmd.c_str(), cmd.length());
-        std::cout << waitShellPrompt(channel, buffer);  //await for return value   
+        std::cout << waitShellPrompt(channel, buffer);  //await for return value
     }
     //SECOND handle interactive commands
     InputHandler& inputHandler = InputHandler::getInstance();
@@ -159,7 +162,7 @@ void SecureShell::interactShell() {
         if (inputHandler.hasCommand()) {
             cmd = inputHandler.getCommand() + "\n";
             libssh2_channel_write(channel, cmd.c_str(), cmd.length());
-            std::cout << waitShellPrompt(channel, buffer);  //await for return value   
+            std::cout << waitShellPrompt(channel, buffer);  //await for return value
         }
     }
 
@@ -173,34 +176,34 @@ std::string SecureShell::waitShellPrompt(LIBSSH2_CHANNEL* channel, char* buffer)
     std::string output;
     int bytesRead;
     int emptyReads = 0;
-    const int MAX_EMPTY_READS = 25; 
+    const int MAX_EMPTY_READS = 25;
     const int CHECK_INTERVAL_MS = 50;
-    
+
     while (emptyReads < MAX_EMPTY_READS) {    // Read until we haven't received data for a short period
         bytesRead = libssh2_channel_read(channel, buffer, sizeof(buffer)-1);
-        
+
         if (bytesRead == LIBSSH2_ERROR_EAGAIN) {    // No data available yet
             emptyReads++;
             std::this_thread::sleep_for(std::chrono::milliseconds(CHECK_INTERVAL_MS));
             continue;
         }
-        
+
         if (bytesRead <= 0) {   // Error or channel closed
             break;
         }
-        
+
         buffer[bytesRead] = '\0';
         output += buffer;
         emptyReads = 0;  // Reset counter when we get data
 
         if (output.length() <= 2) continue; // Check if we've received a prompt
-        
+
         size_t lastNewline = output.find_last_of('\n');
         if (lastNewline == std::string::npos) continue;
-        
+
         std::string lastLine = output.substr(lastNewline + 1);
         if (lastLine.empty()) continue;
-        
+
         char lastChar = lastLine.back();
         for (char promptChar : PROMPT_ENDINGS) { // Check if last character matches any prompt ending
             if (lastChar == promptChar) {
@@ -208,7 +211,7 @@ std::string SecureShell::waitShellPrompt(LIBSSH2_CHANNEL* channel, char* buffer)
             }
         }
     }
- 
+
     return output;
 }
 

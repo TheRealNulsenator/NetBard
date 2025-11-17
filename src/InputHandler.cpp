@@ -1,4 +1,4 @@
-#include "InputHandler.h"
+#include "InputHandler.hpp"
 #include <iostream>
 #include <chrono>
 

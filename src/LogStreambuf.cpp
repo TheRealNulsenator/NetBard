@@ -1,4 +1,5 @@
-#include "LogStreambuf.h"
+
+#include "LogStreambuf.hpp"
 #include <iostream>
 #include <iomanip>
 #include <filesystem>
@@ -8,13 +9,13 @@ std::streambuf* LogStreambuf::s_cout_original_buf = nullptr;
 LogStreambuf::LogStreambuf(std::string title){
         m_file_title = title;
         m_log_file = nullptr;
-        if(!s_cout_original_buf){ //private static pointer of original std::cout streambuf
+        if(!s_cout_original_buf){ //private static pointer of original cout streambuf
             s_cout_original_buf = std::cout.rdbuf();
         }
         // Create directories (does nothing if they already exist)
-        auto local_t = timestamp(); 
+        auto local_t = timestamp();
         m_directory << "logs/" << std::put_time(&local_t, "%Y%m%d");
-        std::filesystem::create_directories(m_directory.str());   
+        std::filesystem::create_directories(m_directory.str());
     }
 
 LogStreambuf::~LogStreambuf() {
@@ -25,12 +26,12 @@ LogStreambuf::~LogStreambuf() {
 void LogStreambuf::startLogging(const std::string& details) {
     stopLogging();  // Ensure file is closed
     auto local_t = timestamp();
-    std::stringstream filepath; 
+    std::stringstream filepath;
     filepath    << m_directory.str() << "/" << m_file_title     //title for unique command identifier
                 << "_" << sanitize_for_windows_path(details)    //details of this call
                 << "_" << std::put_time(&local_t, "%H%M%S") << ".txt"; //timestamp
     m_log_file = std::make_unique<std::ofstream>(filepath.str(), std::ios::app);
-    std::cout.rdbuf(this);    // redirect std::cout to also print to log file
+    std::cout.rdbuf(this);    // redirect cout to also print to log file
 }
 
 void LogStreambuf::stopLogging() {
@@ -67,19 +68,19 @@ int LogStreambuf::sync() {
     return 0;
 }
 
-tm LogStreambuf::timestamp(){ 
+tm LogStreambuf::timestamp(){
     auto now = std::chrono::system_clock::now();
     auto time_t = std::chrono::system_clock::to_time_t(now);
-    return *std::localtime(&time_t);
+    return *localtime(&time_t);
 }
 
 
 std::string LogStreambuf::sanitize_for_windows_path(const std::string& filename) {
     std::string result = filename;
-    
+
     // Characters not allowed in Windows filenames
     const std::string invalidChars = "<>:\"/\\|?*";
-    
+
     for (char& c : result) {    // Replace each invalid character
         if (invalidChars.find(c) != std::string::npos) {
             c = '-';
@@ -89,6 +90,6 @@ std::string LogStreambuf::sanitize_for_windows_path(const std::string& filename)
             c = '-';
         }
     }
-    
+
     return result;
 }

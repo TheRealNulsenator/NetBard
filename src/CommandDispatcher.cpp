@@ -1,4 +1,5 @@
-#include "CommandDispatcher.h"
+
+#include "CommandDispatcher.hpp"
 #include <iostream>
 #include <sstream>
 #include <algorithm>
@@ -17,9 +18,6 @@ void CommandDispatcher::initialize() {
         registerCommand("quit", [](const std::vector<std::string>& args) {
             s_running = false;  // Stop running
         }, "Exit the program");
-        registerCommand("exit", [](const std::vector<std::string>& args) {
-            s_running = false;  // Stop running
-        }, "Exit the program");
         s_running = true;
     }
 }
@@ -29,8 +27,8 @@ bool CommandDispatcher::handleHelp(const std::vector<std::string>& arguments) {
     for (const auto& commandPair : s_commands) { // output all registered command tips
         const std::string& commandName = commandPair.first;
         const std::string& tip = s_tips[commandName];
-        std::cout << "  " << commandName << "   -   " << tip << std::endl;
-        
+        std::cout << "  " << commandName << "\t-\t" << tip << std::endl;
+
     }
     return true;
 }
@@ -44,11 +42,11 @@ void CommandDispatcher::processCommand(const std::string& command) {
 
     // Convert command name to lowercase for case-insensitive matching
     std::transform(commandName.begin(), commandName.end(), commandName.begin(),
-                   [](unsigned char c){ return std::tolower(c); });
+                   [](unsigned char c){ return tolower(c); });
 
     commandArgs.erase(commandArgs.begin());     // Remove command name from arguments before passing to handler
     auto commandHandlerIterator = s_commands.find(commandName);
-    if (commandHandlerIterator != s_commands.end()) {   //we found a matching command 
+    if (commandHandlerIterator != s_commands.end()) {   //we found a matching command
         auto commandHandler = commandHandlerIterator->second;   //get pointer to the command function itself using commandname key
         commandHandler(commandArgs);
         return;
@@ -67,11 +65,11 @@ std::vector<std::string> CommandDispatcher::splitCommand(const std::string& comm
     std::vector<std::string> parts;
     std::stringstream stringStream(command);
     std::string part;
-    
+
     while (stringStream >> part) {
         parts.push_back(part);
     }
-    
+
     return parts;
 }
 

@@ -1,0 +1,5 @@
+Scanning ports on 10.106.15.1
+  Port 22 OPEN - SSH Secure Shell
+  Port 23 OPEN - Telnet
+  Port 80 OPEN - HTTP Web Server
+  Port 443 OPEN - HTTPS Secure Web Server

@@ -2,26 +2,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "type": "cppbuild",
+            "type": "shell",
             "label": "C/C++: g++.exe build all files",
-            "command": "g++",
-            "args": [
-                "-g",
-                "-I${workspaceFolder}\\include",
-                "-IC:\\msys64\\mingw64\\include",
-                "main.cpp",
-                "src\\CommandDispatcher.cpp",
-                "src\\InputHandler.cpp",
-                "src\\SecureShell.cpp",
-                "src\\PingScanner.cpp",
-                "src\\LogStreambuf.cpp",
-                "src\\TCPScanner.cpp",
-                "-lssh2",
-                "-lws2_32",
-                "-liphlpapi",
-                "-o",
-                "${workspaceFolder}\\cartographer.exe"
-            ],
+            "command": "g++ -g -static -I${workspaceFolder}/include -IC:/msys64/mingw64/include main.cpp (Get-ChildItem src/*.cpp | % { $_.FullName }) -lssh2 -lssl -lcrypto -lz -lws2_32 -liphlpapi -lcrypt32 -lbcrypt -o ${workspaceFolder}/cartographer.exe",
             "options": {
                 "cwd": "${workspaceFolder}"
             },

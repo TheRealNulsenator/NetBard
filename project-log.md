@@ -990,4 +990,131 @@ Features designed to work together:
 
 These features directly support the core mission: helping expert investigators unravel network messes and enabling junior engineers to collect useful diagnostic data.
 
-*Last Updated: 2025-09-17 - Document maintained for human-readable project history and decisions*
+### 2025-09-17: TCPScanner Implementation (Port Scanner Feature #1)
+**Time Spent:** ~2 hours implementation
+**Status:** ✅ COMPLETE - TCP port scanning fully implemented and tested
+
+#### Implementation Details
+
+**Class Design:**
+- Inherits from `vToolCommand<TCPScanner>` for automatic registration and logging
+- Command phrase: `tcp`, tip: "Scan TCP ports on target. Usage: tcp <ip>"
+- Static port list with 68 common and industrial protocol ports
+- Static port descriptions map for service identification
+
+**Port Database:**
+- **Web Services**: HTTP (80), HTTPS (443), alternates (8080, 8443)
+- **Industrial Protocols**:
+  - Modbus TCP (502)
+  - Siemens S7 (102, 5000, 5001)
+  - EtherNet/IP (44818, 2222)
+  - OPC UA (4840, 4843)
+  - BACnet (47808)
+  - DNP3 (20000)
+  - MQTT (1883, 8883)
+  - OMRON FINS (9600)
+  - Niagara Fox (1911)
+  - Profinet (34962-34964)
+  - IEC 60870-5-104 (2404)
+  - WAGO CoDeSys (2455)
+  - Red Lion Crimson (789)
+  - Phoenix Contact PCWorx (1962)
+- **Network Management**: SSH (22), Telnet (23), FTP (20/21), TFTP (69), SNMP (161/162)
+- **Database & HMI**: SQL Server (1433), MySQL (3306), PostgreSQL (5432), VNC (5900), RDP (3389)
+- **Email**: SMTP (25/587), POP3 (110/995), IMAP (143/993)
+
+**Scanning Method: TCP Connect Scan**
+- Uses `connect()` system call for full three-way handshake
+- Non-blocking socket mode with `ioctlsocket(FIONBIO)`
+- 500ms timeout per port using `select()` with fd_sets
+- 25ms delay between port scans to avoid overwhelming target
+- Proper resource cleanup with `closesocket()` after each attempt
+
+**Integration with netUtil:**
+- Created `netUtil::isValidIPv4()` helper function for input validation
+- Validates IP address format before scanning starts
+- Returns descriptive error messages for invalid input
+
+**Technical Architecture:**
+```cpp
+// Non-blocking connection attempt
+ioctlsocket(tcp_socket, FIONBIO, &non_blocking_mode);
+connect(tcp_socket, (sockaddr*)&target_address, sizeof(target_address));
+
+// Monitor connection status with select()
+fd_set sockets_that_connected, sockets_with_errors;
+timeval max_wait_time = {0, 500000};  // 500ms timeout
+select(0, nullptr, &sockets_that_connected, &sockets_with_errors, &max_wait_time);
+
+// Check if connection succeeded
+if (FD_ISSET(tcp_socket, &sockets_that_connected)) {
+    // Port is open - look up service description
+}
+```
+
+**Output Format:**
+```
+Scanning ports on 192.168.1.100
+  Port 22 OPEN - SSH Secure Shell
+  Port 80 OPEN - HTTP Web Server
+  Port 443 OPEN - HTTPS Secure Web Server
+  Port 502 OPEN - Modbus TCP
+```
+
+#### Design Decisions
+
+**Sequential vs Parallel Scanning:**
+- Initially implemented sequential scan with 25ms delay
+- Trade-off: Slower but gentler on target devices
+- Industrial equipment often can't handle aggressive parallel scanning
+- Future enhancement: Configurable thread pool for faster scans when safe
+
+**Service Identification:**
+- Static port description map for immediate service identification
+- No banner grabbing in initial implementation (complexity vs value)
+- Descriptions focus on industrial protocols for target audience
+
+**Input Validation:**
+- Two-phase validation via `validateInput()` before `handleCommand()`
+- Prevents log file creation for invalid commands
+- Clear error messages for user guidance
+
+#### Helper Utilities Created
+
+**netUtil::isValidIPv4():**
+```cpp
+// Validates IPv4 address format (e.g., "192.168.1.1")
+// Returns true if valid, false otherwise
+bool netUtil::isValidIPv4(const std::string& ip_address);
+```
+
+#### Benefits Realized
+1. **Immediate Service Discovery**: Identifies what's running on target devices
+2. **Industrial Protocol Focus**: Curated port list for industrial networks
+3. **Gentle Scanning**: Won't overwhelm legacy PLCs or RTUs
+4. **Automatic Logging**: All scan results logged via vToolCommand
+5. **Service Context**: Port descriptions help interpret results
+
+#### Testing Notes
+- Tested against local machine (Windows)
+- Successfully identifies open ports (22, 80, 443, etc.)
+- Clean error handling for unreachable hosts
+- Proper socket cleanup prevents resource leaks
+
+#### Known Limitations
+1. **TCP Only**: No UDP scanning in initial implementation
+2. **No Banner Grabbing**: Service identification is port-based only
+3. **Sequential Scanning**: ~2 seconds per port with current delays (68 ports = ~2 minutes)
+4. **No Stealth Mode**: Full TCP connections are logged by firewalls
+5. **Fixed Port List**: Can't customize ports via command line
+
+#### Future Enhancements
+- [ ] Parallel scanning with thread pool (similar to PingScanner)
+- [ ] UDP port scanning
+- [ ] Banner grabbing for better service identification
+- [ ] Custom port range specification (e.g., `tcp <ip> 1-1024`)
+- [ ] Scan speed adjustment (gentle/normal/aggressive)
+- [ ] Results export to CSV/JSON
+- [ ] Integration with PingScanner for subnet-wide port scans
+
+*Last Updated: 2025-11-17 - Document maintained for human-readable project history and decisions*
