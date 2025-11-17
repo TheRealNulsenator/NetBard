@@ -13,7 +13,7 @@ class SecureShell : public vToolCommand<SecureShell> {
 public:
     // Static command metadata for CRTP base class
     static constexpr const char* COMMAND_PHRASE = "ssh";
-    static constexpr const char* COMMAND_TIP = "Autorun ssh commands against a host.\n\t\tssh <IP> <user> <pw>";
+    static constexpr const char* COMMAND_TIP = "Autorun ssh commands against a host.\n\tssh <IP> <user> <pw>";
 
     ~SecureShell();
 

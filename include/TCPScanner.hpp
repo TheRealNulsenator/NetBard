@@ -10,7 +10,7 @@ class TCPScanner : public vToolCommand<TCPScanner>
 {
     public:
         static constexpr const char* COMMAND_PHRASE = "tcp";
-        static constexpr const char* COMMAND_TIP = "Scan TCP ports on target.\n\t\ttcp <ip> \n\t\ttcp <cidr> <port>";
+        static constexpr const char* COMMAND_TIP = "Scan TCP ports on target.\n\ttcp <ip> \n\ttcp <cidr> <port>";
 
         static std::map<int, std::string> Ports;
 

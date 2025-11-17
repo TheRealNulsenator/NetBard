@@ -27,8 +27,7 @@ bool CommandDispatcher::handleHelp(const std::vector<std::string>& arguments) {
     for (const auto& commandPair : s_commands) { // output all registered command tips
         const std::string& commandName = commandPair.first;
         const std::string& tip = s_tips[commandName];
-        std::cout << "  " << commandName << "\t-\t" << tip << std::endl;
-
+        std::cout << "  " << commandName << "\t- " << tip << std::endl;
     }
     return true;
 }

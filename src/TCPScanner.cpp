@@ -77,10 +77,11 @@ bool TCPScanner::validateInput(const std::vector<std::string>& arguments) {
         case 0:
             return false;
         case 1:
-            if(netUtil::isValidIPv4(arguments[0])){
+            if(!netUtil::isValidIPv4(arguments[0])){
                 cout << "Invalid IP Address" << endl;
                 return false;
             }
+            break;
         case 2:
             if(!netUtil::isValidCIDR(arguments[0])){
                 cout << "Invalid CIDR" << endl;
@@ -90,6 +91,10 @@ bool TCPScanner::validateInput(const std::vector<std::string>& arguments) {
                 cout << "Invalid Port" << endl;
                 return false;
             }
+            else{
+                return true;
+            }
+            break;
         default:
             return false;
     }
@@ -104,7 +109,7 @@ void TCPScanner::handleCommand(const std::vector<std::string>& arguments) {
 
     if(netUtil::isValidCIDR(address)){
         int port = std::stoi(arguments[1]);
-        std::cout << "Scanning for " << port << " across " << address << std::endl;
+        std::cout << "Scanning for open-port:" << port << " across " << address << std::endl;
     }
     else{
         std::cout << "Scanning ports on " << address << std::endl;

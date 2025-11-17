@@ -20,22 +20,29 @@ PingScanner::PingScanner(){}
 
 bool PingScanner::validateInput(const std::vector<std::string>& arguments){
 
-    if(arguments.size() == 0){
-        return false;
-    }
-
-    const std::string cidr = arguments[0];
-    m_cidr_parts = netUtil::parseCIDR(arguments[0]);
-    if(m_cidr_parts.size() == 5){
-        return true;
-    }
-    else if(m_cidr_parts.size() == 4){
-        m_cidr_parts.push_back("32");
-        return true;
-    }
-
     m_cidr_parts.clear();
-    return false;
+    switch(arguments.size()){
+        case 0:
+            return false;
+            break;
+        case 1:
+            if(netUtil::isValidCIDR(arguments[0])){
+                m_cidr_parts = netUtil::parseCIDR(arguments[0]);
+                return true;
+            }
+            else if (netUtil::isValidIPv4(arguments[0])){
+                m_cidr_parts = netUtil::parseCIDR(arguments[0]);
+                m_cidr_parts.push_back("32");
+                return true;
+            }
+            else{
+                return false;
+            }
+            break;
+        default:
+            return false;
+    }
+
 }
 
 void PingScanner::handleCommand(const std::vector<std::string>& arguments) {
@@ -46,15 +53,11 @@ void PingScanner::handleCommand(const std::vector<std::string>& arguments) {
     uint32_t mask; //extracts subnet mask shorthand into binary mask
     if (!netUtil::mask_to_bits(m_cidr_parts.back(), mask)) { std::cout << "Invalid Subnet" << std::endl; return;}
 
-
     if(mask == UINT32_MAX){
         std::string host_address = netUtil::bits_to_address(ip);
         std::cout << "Pinging host: " << host_address << std::endl;
-        HANDLE icmp_handle = IcmpCreateFile();  // create ICMP handle once for each thread
-        if (icmp_handle == INVALID_HANDLE_VALUE) {  //ICMP is stateful connection, handle=special file that stores connection state
-            std::cout << "Failed to create ICMP handle" << std::endl;
-            return;
-        }
+        HANDLE icmp_handle = IcmpCreateFile();
+        if (icmp_handle == INVALID_HANDLE_VALUE) { std::cout << "Failed to create ICMP handle" << std::endl; return;}
         if(pingHost(host_address, icmp_handle)){
             std::cout << "Responded!" << std::endl;
         }
@@ -68,9 +71,7 @@ void PingScanner::handleCommand(const std::vector<std::string>& arguments) {
 }
 
 
-
 void PingScanner::scan(uint32_t ip, uint32_t mask){
-
 
     const uint32_t network_address = ip & mask;
     const uint32_t broadcast_address = ip | ~mask;
@@ -102,10 +103,8 @@ void PingScanner::scan(uint32_t ip, uint32_t mask){
         //uses emplace_back to avoid attempting thread copy operation
         threads.emplace_back([&]() -> void {  //used lambda because this is an over-engineered solution
             HANDLE icmp_handle = IcmpCreateFile();  // create ICMP handle once for each thread
-            if (icmp_handle == INVALID_HANDLE_VALUE) {  //ICMP is stateful connection, handle=special file that stores connection state
-                std::cout << "Failed to create ICMP handle" << std::endl;
-                return;
-            }
+            //ICMP is stateful connection, handle=special file that stores connection state
+            if (icmp_handle == INVALID_HANDLE_VALUE) {std::cout << "Failed to create ICMP handle" << std::endl;return;}
             while (true) {  //keep scanning addresses until we have gotten them all and main program closes them all.
                 int my_index = index_of_next_address_to_ping.fetch_add(1); //ATOMIC fetch and increment (implicit mutex usage with minimized critical code section)
                 if (my_index >= Host_Addresses.size()) break;   //no more work

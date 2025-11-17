@@ -16,7 +16,7 @@ public:
 
     // Static command metadata for CRTP base class
     static constexpr const char* COMMAND_PHRASE = "ping";
-    static constexpr const char* COMMAND_TIP = "Ping sweep subnet for active hosts.\n\t\tping <cidr>\n\t\tping <ip address>";
+    static constexpr const char* COMMAND_TIP = "Ping sweep subnet for active hosts.\n\tping <cidr>\n\tping <ip address>";
 
     bool validateInput(const std::vector<std::string>& arguments) override;
     void handleCommand(const std::vector<std::string>& arguments) override;

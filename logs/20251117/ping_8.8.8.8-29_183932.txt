@@ -1,0 +1,6 @@
+Network:      00001000000010000000100000001000
+Mask:         11111111111111111111111111111000
+Broadcast:    00001000000010000000100000001111
+Unique addresses: 6
+Scanning 8.8.8.8 via Ping...
+Scan complete. Found 0 alive hosts out of 6 scanned.

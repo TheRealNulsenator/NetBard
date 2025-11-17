@@ -34,9 +34,11 @@ public:
                 Derived::COMMAND_PHRASE,
                 [](const std::vector<std::string>& args) { //opportunity to use decorator class pattern here
                     Derived &instance = Derived::getInstance();
-                    if(!instance.validateInput(args))
+                    if(!instance.validateInput(args)){
+                        std::cout << "Invalid Input" << std::endl;
                         std::cout << Derived::COMMAND_TIP << std::endl;
                         return;
+                    }
                     instance.m_log->startLogging(args[0]);
                     instance.handleCommand(args);
                     instance.m_log->stopLogging();
